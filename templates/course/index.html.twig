@@ -1,16 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Course index{% endblock %}
+{% block title %}StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Course index</h1>
+    <h1>Список курсов</h1>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Description</th>
-                {# <th>actions</th> #}
+                <th>Название</th>
+                <th>Описание</th>
             </tr>
         </thead>
         <tbody>
@@ -18,13 +17,10 @@
             <tr>
                 <td><a href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.name }}</a></td>
                 <td>{{ course.description }}</td>
-                {# <td>
-                    <a href="{{ path('app_course_edit', {'id': course.id}) }}">edit</a>
-                </td> #}
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="5">Не найдено записей</td>
             </tr>
         {% endfor %}
         </tbody>
