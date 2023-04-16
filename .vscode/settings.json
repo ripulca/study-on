@@ -1,0 +1,22 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "172.18.0.2",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "database": "study_on",
+            "username": "pguser",
+            "name": "study_on"
+        },
+        {
+            "previewLimit": 50,
+            "server": "172.19.0.2",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "study_on_billing",
+            "database": "study_on_billing",
+            "username": "pguser"
+        }
+    ]
+}
