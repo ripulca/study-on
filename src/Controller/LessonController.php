@@ -23,32 +23,6 @@ class LessonController extends AbstractController
         ]);
     }
 
-    // #[Route('/new', name: 'app_lesson_new', methods: ['GET', 'POST'])]
-    // public function new(Request $request, ManagerRegistry $doctrine): Response
-    // {
-    //     $entityManager = $doctrine->getManager();
-    //     $course_id = (int)$request->query->get('course_id');
-    //     $course = $entityManager->getRepository(Course::class)->find($course_id);
-    //     if (!$course) {
-    //         throw $this->createNotFoundException();
-    //     }
-    //     $lesson = new Lesson();
-    //     $lesson->setCourse($course);
-    //     $form = $this->createForm(LessonType::class, $lesson, ['course_id' => $course_id]);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $entityManager->getRepository(Lesson::class)->save($lesson, true);
-
-    //         return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
-    //     }
-
-    //     return $this->renderForm('lesson/new.html.twig', [
-    //         'lesson' => $lesson,
-    //         'form' => $form,
-    //     ]);
-    // }
-
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
     public function show(Lesson $lesson): Response
     {
