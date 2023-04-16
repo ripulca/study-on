@@ -15,6 +15,9 @@ clear:
 migration:
 	@${CONSOLE} make:migration
 
+crud:
+	@${CONSOLE} make:crud
+
 migrate:
 	@${CONSOLE} doctrine:migrations:migrate
 

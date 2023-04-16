@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ course.name }}</td>
+    {% if course.description %}
+        <h3>{{ course.description }}</h3>
+    {% endif %}
+    {% for lesson in course.lessons|sort((a, b) => a.serialNumber <=> b.serialNumber) %}
+        <div>
+            <a href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+                <div>{{ lesson.name }}</div>
+            </a>
+        </div>
+    {% else %}
+        <div>
+            <div colspan="5">Нет записей</div>
+        </div>
+    {% endfor %}
+    <a href="{{ path('app_course_index') }}">Список курсов</a>
+
+    <a href="{{ path('app_course_edit', {'id': course.id}) }}">Редактировать</a>
+
+    <a href="{{ path('app_lesson_new', {'course_id': course.id}) }}">Добавить урок</a>
+
+    {{ include('course/_delete_form.html.twig') }}
+{% endblock %}

@@ -30,7 +30,7 @@ class Lesson
         max: 10000,
         notInRangeMessage: 'порядковый номер урока должен быть между {{ min }} и {{ max }}',
     )]
-    private ?int $serial_number = null;
+    private ?int $serialNumber = null;
 
     public function getId(): ?int
     {
@@ -75,12 +75,12 @@ class Lesson
 
     public function getSerialNumber(): ?int
     {
-        return $this->serial_number;
+        return $this->serialNumber;
     }
 
-    public function setSerialNumber(int $serial_number): self
+    public function setSerialNumber(int $serialNumber): self
     {
-        $this->serial_number = $serial_number;
+        $this->serialNumber = $serialNumber;
 
         return $this;
     }
