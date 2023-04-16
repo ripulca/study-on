@@ -3,12 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Course;
+use App\Entity\Lesson;
 use App\Form\CourseType;
+use App\Form\LessonType;
 use App\Repository\CourseRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/course')]
 class CourseController extends AbstractController
@@ -36,6 +39,27 @@ class CourseController extends AbstractController
 
         return $this->renderForm('course/new.html.twig', [
             'course' => $course,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/new_lesson', name: 'app_lesson_new', methods: ['GET', 'POST'])]
+    public function newLesson(Request $request, Course $course, ManagerRegistry $doctrine): Response
+    {
+        $entityManager = $doctrine->getManager();
+        $lesson = new Lesson();
+        $lesson->setCourse($course);
+        $form = $this->createForm(LessonType::class, $lesson, ['course' => $course->getId()]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->getRepository(Lesson::class)->save($lesson, true);
+
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->renderForm('lesson/new.html.twig', [
+            'lesson' => $lesson,
             'form' => $form,
         ]);
     }

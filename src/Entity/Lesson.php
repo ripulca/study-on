@@ -26,7 +26,7 @@ class Lesson
 
     #[ORM\Column]
     #[Assert\Range(
-        min: 0,
+        min: 1,
         max: 10000,
         notInRangeMessage: 'порядковый номер урока должен быть между {{ min }} и {{ max }}',
     )]
