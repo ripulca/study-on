@@ -37,7 +37,7 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('course/new.html.twig', [
+        return $this->render('course/new.html.twig', [
             'course' => $course,
             'form' => $form,
         ]);
@@ -58,7 +58,7 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('lesson/new.html.twig', [
+        return $this->render('lesson/new.html.twig', [
             'lesson' => $lesson,
             'form' => $form,
         ]);
@@ -84,7 +84,7 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('course/edit.html.twig', [
+        return $this->render('course/edit.html.twig', [
             'course' => $course,
             'form' => $form,
         ]);
