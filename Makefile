@@ -24,6 +24,14 @@ migrate:
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
 
+require:
+	@${COMPOSER} require
+
+encore_dev:
+	@${COMPOSE} run node yarn encore dev
+
+encore_prod:
+	@${COMPOSE} run node yarn encore production
 # В файл local.mk можно добавлять дополнительные make-команды,
 # которые требуются лично вам, но не нужны на проекте в целом
 -include local.mk

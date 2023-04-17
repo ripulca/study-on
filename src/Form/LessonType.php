@@ -28,37 +28,40 @@ class LessonType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label'=>'Название',
+                'label' => 'Название',
                 'required' => true,
                 'constraints' => [
-                    new Length(max: 255, maxMessage: 'Название урока должно быть не более {{max}} символов'),
+                    new Length(max: 255,
+                        maxMessage: 'Название урока должно быть не более {{max}} символов'),
                 ],
             ])
             ->add('content', TextareaType::class, [
-                'label'=>'Содержимое урока',
+                'label' => 'Содержимое урока',
                 'required' => true,
             ])
             ->add('serialNumber', IntegerType::class, [
                 'label' => 'Порядковый номер',
                 'required' => true,
-                'attr'=>[
-                    'max'=>10000,
-                    'min'=>1,
+                'attr' => [
+                    'max' => 10000,
+                    'min' => 1,
                 ]
             ])
             ->add('course', HiddenType::class, )
         ;
         $builder->get('course')
-            ->addModelTransformer(new CallbackTransformer(
-                function ($courseAsObj): string {
-                    return $courseAsObj->getId();
-                },
-                function ($courseId): Course {
-                    return $this->entityManager
-                    ->getRepository(Course::class)
-                    ->find($courseId);
-                }
-            ))
+            ->addModelTransformer(
+                new CallbackTransformer(
+                    function ($courseAsObj): string {
+                        return $courseAsObj->getId();
+                    },
+                    function ($courseId): Course {
+                        return $this->entityManager
+                            ->getRepository(Course::class)
+                            ->find($courseId);
+                    }
+                )
+            )
         ;
     }
 
