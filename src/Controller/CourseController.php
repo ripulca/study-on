@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/course')]
+#[Route('/courses')]
 class CourseController extends AbstractController
 {
     #[Route('/', name: 'app_course_index', methods: ['GET'])]

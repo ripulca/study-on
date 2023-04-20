@@ -4,7 +4,7 @@ namespace App\Tests;
 
 use App\Tests\AbstractTest;
 
-class LessonTest extends AbstractTest
+class LessonControllerTest extends AbstractTest
 {
     public function testSomething(): void
     {

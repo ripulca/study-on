@@ -1,30 +1,33 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}StudyOn{% endblock %}
+{% block title %}StudyOn
+{% endblock %}
 
 {% block body %}
-    <h1>Список курсов</h1>
+	<h1>Список курсов</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Название</th>
-                <th>Описание</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for course in courses %}
-            <tr>
-                <td><a href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.name }}</a></td>
-                <td>{{ course.description }}</td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">Не найдено записей</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Название</th>
+				<th>Описание</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for course in courses %}
+				<tr class="card-body">>
+					<td>
+						<a class="course-show" href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.name }}</a>
+					</td>
+					<td>{{ course.description }}</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="5">Не найдено записей</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 
-    <a href="{{ path('app_course_new') }}">Добавить</a>
+	<a href="{{ path('app_course_new') }}">Добавить</a>
 {% endblock %}

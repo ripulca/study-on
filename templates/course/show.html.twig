@@ -3,14 +3,14 @@
 {% block title %}{{ course.name }}/StudyOn{% endblock %}
 
 {% block body %}
-    <h1>{{ course.name }}</td>
+    <h1 class="course-name">{{ course.name }}</h1>
     {% if course.description %}
-        <h3>{{ course.description }}</h3>
+        <h3 class="card-text">{{ course.description }}</h3>
     {% endif %}
-    <ol>
+    <ol class="list-group list-group-numbered">
     {% for lesson in course.lessons|sort((a, b) => a.serialNumber <=> b.serialNumber) %}
-        <li>
-            <a href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+        <li class="list-group-item">
+            <a class='lesson' href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
                 <div>{{ lesson.name }}</div>
             </a>
         </li>
@@ -21,11 +21,11 @@
     {% endfor %}
     </ol>
     <div>
-        <a href="{{ path('app_course_index') }}">Список курсов</a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_course_index') }}">Список курсов</a>
 
-        <a href="{{ path('app_course_edit', {'id': course.id}) }}">Редактировать</a>
+        <a class="course-edit btn btn-outline-secondary" href="{{ path('app_course_edit', {'id': course.id}) }}">Редактировать</a>
 
-        <a href="{{ path('app_lesson_new', {'id': course.id}) }}">Добавить урок</a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_lesson_new', {'id': course.id}) }}">Добавить урок</a>
 
         {{ include('course/_delete_form.html.twig') }}
     </div>

@@ -14,19 +14,32 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractTest extends WebTestCase
 {
+    private const TEST_ADD='Добавить';
+    private const TEST_UPDATE='Обновить';
+    private const TEST_SAVE='Сохранить';
+    private const TEST_EDIT='Редактировать';
+
     /** @var Client */
     protected static $client;
 
-    protected static function getClient($reinitialize = false, array $options = [], array $server = [])
+    public function getAddBtn()
     {
-        if (!static::$client || $reinitialize) {
-            static::$client = static::createClient($options, $server);
-        }
+        return self::TEST_ADD;
+    }
 
-        // core is loaded (for tests without calling of getClient(true))
-        static::$client->getKernel()->boot();
+    public function getUpdateBtn()
+    {
+        return self::TEST_UPDATE;
+    }
 
-        return static::$client;
+    public function getSaveBtn()
+    {
+        return self::TEST_SAVE;
+    }
+
+    public function getEditBtn()
+    {
+        return self::TEST_EDIT;
     }
 
     protected function setUp(): void
@@ -41,50 +54,40 @@ abstract class AbstractTest extends WebTestCase
         static::$client = null;
     }
 
-    /**
-     * Shortcut
-     */
-    protected static function getEntityManager()
-    {
-        return static::$container->get('doctrine')->getManager();
-    }
-
-    /**
-     * List of fixtures for certain test
-     */
-    protected function getFixtures(): array
-    {
-        return [];
-    }
-
-    /**
-     * Load fixtures before test
-     */
-    protected function loadFixtures(array $fixtures = [])
-    {
-        $loader = new Loader();
-
-        foreach ($fixtures as $fixture) {
-            if (!\is_object($fixture)) {
-                $fixture = new $fixture();
-            }
-
-            if ($fixture instanceof ContainerAwareInterface) {
-                $fixture->setContainer(static::$container);
-            }
-
-            $loader->addFixture($fixture);
-        }
-
-        $em = static::getEntityManager();
-        $purger = new ORMPurger($em);
-        $executor = new ORMExecutor($em, $purger);
-        $executor->execute($loader->getFixtures());
-    }
-
     public function assertResponseOk(?Response $response = null, ?string $message = null, string $type = 'text/html')
     {
         $this->failOnResponseStatusCheck($response, 'isOk', $message, $type);
+    }
+
+    /**
+     * @return string
+     */
+    public function guessErrorMessageFromResponse(Response $response, string $type = 'text/html')
+    {
+        try {
+            $crawler = new Crawler();
+            $crawler->addContent($response->getContent(), $type);
+
+            if (!\count($crawler->filter('title'))) {
+                $add = '';
+                $content = $response->getContent();
+
+                if ('application/json' === $response->headers->get('Content-Type')) {
+                    $data = json_decode($content);
+                    if ($data) {
+                        $content = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                        $add = ' FORMATTED';
+                    }
+                }
+                $title = '['.$response->getStatusCode().']'.$add.' - '.$content;
+            } else {
+                $title = $crawler->filter('title')->text();
+            }
+        } catch (\Exception $e) {
+            $title = $e->getMessage();
+        }
+
+        return trim($title);
     }
 
     public function assertResponseRedirect(?Response $response = null, ?string $message = null, string $type = 'text/html')
@@ -106,38 +109,58 @@ abstract class AbstractTest extends WebTestCase
     {
         $this->failOnResponseStatusCheck($response, $expectedCode, $message, $type);
     }
-    /**
-     * @param Response $response
-     * @param string   $type
-     *
-     * @return string
-     */
-    public function guessErrorMessageFromResponse(Response $response, string $type = 'text/html')
+
+    protected static function getClient($reinitialize = false, array $options = [], array $server = [])
     {
-        try {
-            $crawler = new Crawler();
-            $crawler->addContent($response->getContent(), $type);
-
-            if (!\count($crawler->filter('title'))) {
-                $add = '';
-                $content = $response->getContent();
-
-                if ('application/json' === $response->headers->get('Content-Type')) {
-                    $data = json_decode($content);
-                    if ($data) {
-                        $content = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                        $add = ' FORMATTED';
-                    }
-                }
-                $title = '[' . $response->getStatusCode() . ']' . $add .' - ' . $content;
-            } else {
-                $title = $crawler->filter('title')->text();
-            }
-        } catch (\Exception $e) {
-            $title = $e->getMessage();
+        if (!static::$client || $reinitialize) {
+            static::$client = static::createClient($options, $server);
         }
 
-        return trim($title);
+        // core is loaded (for tests without calling of getClient(true))
+        static::$client->getKernel()->boot();
+
+        return static::$client;
+    }
+
+    /**
+     * Load fixtures before test.
+     */
+    protected function loadFixtures(array $fixtures = [])
+    {
+        $loader = new Loader();
+
+        foreach ($fixtures as $fixture) {
+            if (!\is_object($fixture)) {
+                $fixture = new $fixture();
+            }
+
+            if ($fixture instanceof ContainerAwareInterface) {
+                $fixture->setContainer(static::getContainer());
+            }
+
+            $loader->addFixture($fixture);
+        }
+
+        $em = static::getEntityManager();
+        $purger = new ORMPurger($em);
+        $executor = new ORMExecutor($em, $purger);
+        $executor->execute($loader->getFixtures());
+    }
+
+    /**
+     * Shortcut.
+     */
+    protected static function getEntityManager()
+    {
+        return static::getContainer()->get('doctrine')->getManager();
+    }
+
+    /**
+     * List of fixtures for certain test.
+     */
+    protected function getFixtures(): array
+    {
+        return [];
     }
 
     private function failOnResponseStatusCheck(
@@ -168,13 +191,13 @@ abstract class AbstractTest extends WebTestCase
 
         $err = $this->guessErrorMessageFromResponse($response, $type);
         if ($message) {
-            $message = rtrim($message, '.') . ". ";
+            $message = rtrim($message, '.').'. ';
         }
 
         if (is_int($func)) {
-            $template = "Failed asserting Response status code %s equals %s.";
+            $template = 'Failed asserting Response status code %s equals %s.';
         } else {
-            $template = "Failed asserting that Response[%s] %s.";
+            $template = 'Failed asserting that Response[%s] %s.';
             $func = preg_replace('#([a-z])([A-Z])#', '$1 $2', $func);
         }
 
@@ -182,10 +205,10 @@ abstract class AbstractTest extends WebTestCase
 
         $max_length = 100;
         if (mb_strlen($err, 'utf-8') < $max_length) {
-            $message .= " " . $this->makeErrorOneLine($err);
+            $message .= ' '.$this->makeErrorOneLine($err);
         } else {
-            $message .= " " . $this->makeErrorOneLine(mb_substr($err, 0, $max_length, 'utf-8') . '...');
-            $message .= "\n\n" . $err;
+            $message .= ' '.$this->makeErrorOneLine(mb_substr($err, 0, $max_length, 'utf-8').'...');
+            $message .= "\n\n".$err;
         }
 
         $this->fail($message);

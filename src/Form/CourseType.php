@@ -6,6 +6,7 @@ use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -18,12 +19,24 @@ class CourseType extends AbstractType
             ->add('code', TextType::class, [
                 'label' => 'Код',
                 'required' => true,
-                'constraints' => [new Length(max: 255, maxMessage: 'Код не должен превышать {{max}} символов')],
+                'constraints' => [
+                    new Length(
+                        max: 255,
+                        maxMessage: 'Код не должен превышать {{max}} символов'
+                    ),
+                    new NotBlank(message: 'Код не может быть пустым'),
+                ],
             ])
             ->add('name', TextType::class, [
                 'label' => 'Название',
                 'required' => true,
-                'constraints' => [new Length(max: 255, maxMessage: 'Название не должно превышать {{max}} символов')],
+                'constraints' => [
+                    new Length(
+                        max: 255,
+                        maxMessage: 'Название не должно превышать {{max}} символов'
+                    ),
+                    new NotBlank(message: 'Название не может быть пустым'),
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Описание',
