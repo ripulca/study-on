@@ -4,7 +4,6 @@ namespace App\Tests;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
-use joshtronic\LoremIpsum;
 use App\Tests\AbstractTest;
 use App\DataFixtures\AppFixtures;
 
