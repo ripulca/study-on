@@ -1,13 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ lesson.name }}/{{lesson.course.name}}/StudyOn{% endblock %}
+{% block title %}
+	{{ lesson.name }}/{{lesson.course.name}}/StudyOn
+{% endblock %}
 
 {% block body %}
-    <h1>Редактировать урок</h1>
+	<h1>Редактировать урок</h1>
 
-    {{ include('lesson/_form.html.twig', {'button_label': 'Обновить'}) }}
+	{{ include('lesson/_form.html.twig', {'button_label': 'Обновить'}) }}
 
-    <a class="course" href="{{ path('app_course_show', {'id': lesson.course.id}) }}">Вернуться к курсу</a>
+	<a class="course" href="{{ path('app_course_show', {'id': lesson.course.id}) }}">Вернуться к курсу</a>
 
-    {{ include('lesson/_delete_form.html.twig') }}
+	{{ include('lesson/_delete_form.html.twig') }}
 {% endblock %}

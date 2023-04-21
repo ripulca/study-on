@@ -2,15 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\CourseRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CourseRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 #[UniqueEntity(
     fields: ['code'],
-    message: 'данный код уже существует'
+    message: 'Данный код уже существует'
 )]
 class Course
 {
@@ -20,12 +22,30 @@ class Course
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Код не должен превышать 255 символов'
+    )]
+    #[Assert\NotBlank(
+        message: "Код не может быть пустым"
+    )]
     private ?string $code = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Название не должно превышать 255 символов'
+    )]
+    #[Assert\NotBlank(
+        message: "Название не может быть пустым"
+    )]
     private ?string $name = null;
 
     #[ORM\Column(length: 1000, nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: 'Описание не должно превышать 1000 символов'
+    )]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Lesson::class, orphanRemoval: true)]

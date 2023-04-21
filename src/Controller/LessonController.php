@@ -2,11 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Form\LessonType;
 use App\Repository\LessonRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,14 +13,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 #[Route('/lesson')]
 class LessonController extends AbstractController
 {
-    #[Route('/', name: 'app_lesson_index', methods: ['GET'])]
-    public function index(LessonRepository $lessonRepository): Response
-    {
-        return $this->render('lesson/index.html.twig', [
-            'lessons' => $lessonRepository->findAll(),
-        ]);
-    }
-
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
     public function show(Lesson $lesson): Response
     {

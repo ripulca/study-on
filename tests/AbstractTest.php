@@ -4,23 +4,37 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use joshtronic\LoremIpsum;
 use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 
 abstract class AbstractTest extends WebTestCase
 {
-    private const TEST_ADD='Добавить';
-    private const TEST_UPDATE='Обновить';
-    private const TEST_SAVE='Сохранить';
-    private const TEST_EDIT='Редактировать';
+    private const TEST_ADD = 'Добавить';
+    private const TEST_UPDATE = 'Обновить';
+    private const TEST_SAVE = 'Сохранить';
+    private const TEST_EDIT = 'Редактировать';
+    private const COMMON_ERROR = 422;
+    private const NORMAL_CODE = 200;
+
+    /** @var LoremIpsum */
+    private static $loremIpsum;
 
     /** @var Client */
     protected static $client;
+
+    public function getLoremIpsum()
+    {
+        if (!static::$loremIpsum) {
+            static::$loremIpsum = new LoremIpsum();
+        }
+        return static::$loremIpsum;
+    }
 
     public function getAddBtn()
     {
@@ -40,6 +54,16 @@ abstract class AbstractTest extends WebTestCase
     public function getEditBtn()
     {
         return self::TEST_EDIT;
+    }
+
+    public function getCommonError()
+    {
+        return self::COMMON_ERROR;
+    }
+
+    public function getNormalCode()
+    {
+        return self::NORMAL_CODE;
     }
 
     protected function setUp(): void
@@ -79,7 +103,7 @@ abstract class AbstractTest extends WebTestCase
                         $add = ' FORMATTED';
                     }
                 }
-                $title = '['.$response->getStatusCode().']'.$add.' - '.$content;
+                $title = '[' . $response->getStatusCode() . ']' . $add . ' - ' . $content;
             } else {
                 $title = $crawler->filter('title')->text();
             }
@@ -191,7 +215,7 @@ abstract class AbstractTest extends WebTestCase
 
         $err = $this->guessErrorMessageFromResponse($response, $type);
         if ($message) {
-            $message = rtrim($message, '.').'. ';
+            $message = rtrim($message, '.') . '. ';
         }
 
         if (is_int($func)) {
@@ -205,10 +229,10 @@ abstract class AbstractTest extends WebTestCase
 
         $max_length = 100;
         if (mb_strlen($err, 'utf-8') < $max_length) {
-            $message .= ' '.$this->makeErrorOneLine($err);
+            $message .= ' ' . $this->makeErrorOneLine($err);
         } else {
-            $message .= ' '.$this->makeErrorOneLine(mb_substr($err, 0, $max_length, 'utf-8').'...');
-            $message .= "\n\n".$err;
+            $message .= ' ' . $this->makeErrorOneLine(mb_substr($err, 0, $max_length, 'utf-8') . '...');
+            $message .= "\n\n" . $err;
         }
 
         $this->fail($message);

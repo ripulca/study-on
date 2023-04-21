@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\LessonRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\LessonRepository;
 
 #[ORM\Entity(repositoryClass: LessonRepository::class)]
 class Lesson
@@ -19,16 +20,33 @@ class Lesson
     private ?Course $course = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Название не должно превышать 255 символов'
+    )]
+    #[Assert\NotBlank(
+        message: "Название не может быть пустым"
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(
+        message: "Контент не может быть пустым"
+    )]
     private ?string $content = null;
 
     #[ORM\Column]
     #[Assert\Range(
         min: 1,
         max: 10000,
-        notInRangeMessage: 'порядковый номер урока должен быть между {{ min }} и {{ max }}',
+        notInRangeMessage: 'Порядковый номер урока должен быть между 1 и 10000',
+    )]
+    #[Assert\Type(
+        type: 'integer',
+        message: 'Значение должно иметь тип integer',
+    )]
+    #[Assert\NotNull(
+        message: "Порядковый номер не может быть пустым"
     )]
     private ?int $serialNumber = null;
 
@@ -78,7 +96,7 @@ class Lesson
         return $this->serialNumber;
     }
 
-    public function setSerialNumber(int $serialNumber): self
+    public function setSerialNumber(int $serialNumber = null): self
     {
         $this->serialNumber = $serialNumber;
 
