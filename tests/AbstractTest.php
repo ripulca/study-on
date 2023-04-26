@@ -19,8 +19,6 @@ abstract class AbstractTest extends WebTestCase
     private const TEST_UPDATE = 'Обновить';
     private const TEST_SAVE = 'Сохранить';
     private const TEST_EDIT = 'Редактировать';
-    private const COMMON_ERROR = 422;
-    private const NORMAL_CODE = 200;
 
     /** @var LoremIpsum */
     private static $loremIpsum;
@@ -58,12 +56,12 @@ abstract class AbstractTest extends WebTestCase
 
     public function getCommonError()
     {
-        return self::COMMON_ERROR;
+        return Response::HTTP_UNPROCESSABLE_ENTITY;
     }
 
     public function getNormalCode()
     {
-        return self::NORMAL_CODE;
+        return Response::HTTP_OK;
     }
 
     protected function setUp(): void
