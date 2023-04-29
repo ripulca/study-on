@@ -40,7 +40,7 @@ class CourseController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_course_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_course_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Course $course): Response
     {
         return $this->render('course/show.html.twig', [
@@ -48,7 +48,7 @@ class CourseController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
         $form = $this->createForm(CourseType::class, $course);
@@ -66,7 +66,7 @@ class CourseController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_course_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_course_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
         if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->request->get('_token'))) {
