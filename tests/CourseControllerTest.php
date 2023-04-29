@@ -3,6 +3,7 @@
 namespace App\Tests;
 
 use App\Entity\Course;
+use App\Entity\Lesson;
 use App\Tests\AbstractTest;
 use App\DataFixtures\AppFixtures;
 
@@ -54,10 +55,6 @@ class CourseControllerTest extends AbstractTest
             // страница редактирования
             $client->request('GET', '/courses/' . $course->getId() . '/edit');
             $this->assertResponseOk();
-
-            // страница добавления урока
-            $client->request('POST', '/courses/' . $course->getId() . '/new_lesson');
-            $this->assertResponseOk();
         }
     }
     public function testSuccessfulCourseCreating(): void
@@ -96,7 +93,7 @@ class CourseControllerTest extends AbstractTest
         $this->assertSame($crawler->filter('.card-text')->text(), $course->getDescription());
     }
 
-    public function testCourseFailCreating(): void
+    public function testCourseWithEmptyCodeCreating(): void
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
@@ -121,11 +118,24 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Код не может быть пустым'
         );
+    }
+
+    public function testCourseWithEmptyNameCreating(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
 
         // заполняем форму создания курса данными с пустым названием
         $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
             'course[code]' => 'PHP-TEST',
             'course[name]' => '',
+            'course[description]' => 'Description course for test',
         ]);
         $client->submit($courseCreatingForm);
         $this->assertResponseCode($this->getCommonError());
@@ -135,6 +145,18 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Название не может быть пустым'
         );
+    }
+
+    public function testCourseWithNotUniqueCodeCreating(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
         //получаем имеющиеся курсы
         $courses = $this->getEntityManager()->getRepository(Course::class)->findAll();
         $last_course = $courses[count($courses) - 1];
@@ -142,6 +164,7 @@ class CourseControllerTest extends AbstractTest
         $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
             'course[code]' => $last_course->getCode(),
             'course[name]' => 'Course name for test',
+            'course[description]' => 'Description course for test',
         ]);
         $client->submit($courseCreatingForm);
         $this->assertResponseCode($this->getCommonError());
@@ -151,10 +174,24 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Данный код уже существует'
         );
+    }
+
+    public function testCourseWithTooMuchSymbolsInCodeCreating(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
 
         // заполнили форму и отправили с кодом, превышающим 255 символов
         $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
             'course[code]' => $this->getLoremIpsum()->words(50),
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Description course for test',
         ]);
         $client->submit($courseCreatingForm);
         $this->assertResponseCode($this->getCommonError());
@@ -164,11 +201,24 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Код не должен превышать 255 символов'
         );
+    }
+
+    public function testCourseWithTooMuchSymbolsInNameCreating(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
 
         // заполнили форму и отправили с названием, превышающим 255 символов
         $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
             'course[code]' => 'Course name for test',
             'course[name]' => $this->getLoremIpsum()->words(50),
+            'course[description]' => 'Description course for test',
         ]);
         $client->submit($courseCreatingForm);
         $this->assertResponseCode($this->getCommonError());
@@ -178,10 +228,22 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Название не должно превышать 255 символов'
         );
+    }
 
-        // заполнили форму и отправили с описанием, превышающим 255 символов
+    public function testCourseWithTooMuchSymbolsInDescriptionCreating(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполнили форму и отправили с описанием, превышающим 1000 символов
         $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
-            'course[code]' => 'Course name for test',
+            'course[code]' => 'Code',
             'course[name]' => 'Course name for test',
             'course[description]' => $this->getLoremIpsum()->words(1000),
         ]);
@@ -234,16 +296,30 @@ class CourseControllerTest extends AbstractTest
         $this->assertSame($crawler->filter('.card-text')->text(), 'Description course for test');
     }
 
-    public function testCourseFailedEditing(): void
+    public function testCourseWithEmptyCodeEditing(): void
     {
-        // со страницы списка курсов
+        // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
         $crawler = $client->request('GET', '/courses/');
         $this->assertResponseOk();
 
-        // на детальную страницу курса
-        $link = $crawler->filter('.course-show')->first()->link();
+        $link = $crawler->selectLink($this->getAddBtn())->link();
         $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink($this->getEditBtn())->link();
@@ -252,8 +328,6 @@ class CourseControllerTest extends AbstractTest
 
         $submitButton = $crawler->selectButton($this->getUpdateBtn());
         $form = $submitButton->form();
-        $courses = $this->getEntityManager()->getRepository(Course::class)->findAll();
-        $last_course = $courses[count($courses) - 1];
 
         // пробуем сохранить курс без кода
         $form['course[code]'] = '';
@@ -267,9 +341,45 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Код не может быть пустым'
         );
+    }
+
+    public function testCourseWithNotUniqueCodeEditing(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        $submitButton = $crawler->selectButton($this->getUpdateBtn());
+        $form = $submitButton->form();
+        $courses = $this->getEntityManager()->getRepository(Course::class)->findAll();
+        $first_course = $courses[0];
 
         // пробуем сохранить курс с существующим кодом
-        $form['course[code]'] = $last_course->getCode();
+        $form['course[code]'] = $first_course->getCode();
         $client->submit($form);
         $this->assertResponseCode($this->getCommonError());
 
@@ -278,6 +388,40 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Данный код уже существует'
         );
+    }
+
+    public function testCourseWithEmptyNameEditing(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        $submitButton = $crawler->selectButton($this->getUpdateBtn());
+        $form = $submitButton->form();
 
         // пробуем сохранить курс с пустым именем
         $form['course[code]'] = 'exampleuniqcode';
@@ -290,6 +434,40 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Название не может быть пустым'
         );
+    }
+
+    public function testCourseWithTooMuchSymbolsInCodeEditing(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        $submitButton = $crawler->selectButton($this->getUpdateBtn());
+        $form = $submitButton->form();
 
         // пробуем сохранить курс с кодом где символов больше 255
         $form['course[code]'] = $this->getLoremIpsum()->words(50);
@@ -301,6 +479,40 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Код не должен превышать 255 символов'
         );
+    }
+
+    public function testCourseWithTooMuchSymbolsInNameEditing(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        $submitButton = $crawler->selectButton($this->getUpdateBtn());
+        $form = $submitButton->form();
 
         // пробуем сохранить курс с именем где символов больше 255
         $form['course[code]'] = 'exampleuniqcode';
@@ -313,6 +525,40 @@ class CourseControllerTest extends AbstractTest
             '.invalid-feedback.d-block',
             'Название не должно превышать 255 символов'
         );
+    }
+
+    public function testCourseWithTooMuchSymbolsInDescriptionEditing(): void
+    {
+        // от списка курсов переходим на страницу создания курса
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getAddBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // заполняем форму создания курса корректными данными и отправляем
+        $courseCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+            'course[code]' => 'unique-code1',
+            'course[name]' => 'Course name for test',
+            'course[description]' => 'Course description for test',
+        ]);
+        $client->submit($courseCreatingForm);
+        
+        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        // со страницы списка курсов
+        $client = $this->getClient();
+        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $this->assertResponseOk();
+
+        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        $submitButton = $crawler->selectButton($this->getUpdateBtn());
+        $form = $submitButton->form();
 
         // пробуем сохранить курс с описанием где символов больше 1000
         $form['course[name]'] = 'Course name for test';
@@ -342,14 +588,43 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
+        // переходим к деталям урока
+        $link = $crawler->filter('.lesson')->first()->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
+        // сохраняем информацию о курсе
+        $crawler = $client->click($crawler->selectLink($this->getEditBtn())->link());
+        $this->assertResponseOk();
+
+        $form = $crawler->selectButton($this->getUpdateBtn())->form();
+        $course = $this->getEntityManager()
+            ->getRepository(Course::class)
+            ->find($form['lesson[course_id]']->getValue());
+        $courseLessonsCount = count($course->getLessons());
+        // количество до удаления
+        $allLessonsCount = count($this->getEntityManager()
+            ->getRepository(Lesson::class)
+            ->findAll());
+        $countThatShouldStayAfterDeleting = $allLessonsCount - $courseLessonsCount;
+
+        $link = $crawler->filter('.course')->first()->link();
+        $crawler = $client->click($link);
+        $this->assertResponseOk();
+
         $client->submitForm('Удалить');
         $this->assertSame($client->getResponse()->headers->get('location'), '/courses/');
         $crawler = $client->followRedirect();
+        // количество после удаления
+        $allLessonsCountAfterDeleting = count($this->getEntityManager()
+            ->getRepository(Lesson::class)
+            ->findAll());
 
         $coursesCountAfterDelete = count($this->getEntityManager()->getRepository(Course::class)->findAll());
 
         // проверка соответствия кол-ва курсов
         $this->assertSame($coursesCount - 1, $coursesCountAfterDelete);
+        $this->assertSame($countThatShouldStayAfterDeleting, $allLessonsCountAfterDeleting);
         $this->assertCount($coursesCountAfterDelete, $crawler->filter('.card-body'));
     }
 

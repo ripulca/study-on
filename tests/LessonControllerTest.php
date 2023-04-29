@@ -42,7 +42,7 @@ class LessonControllerTest extends AbstractTest
 
         $form = $crawler->selectButton($this->getSaveBtn())->form();
         // сохраняем id курса
-        $courseId = $form['lesson[course]']->getValue();
+        $courseId = $form['lesson[course_id]']->getValue();
 
         // заполняем форму создания урока корректными данными и отправляем
         $form['lesson[name]'] = 'Lesson for test';
@@ -315,7 +315,7 @@ class LessonControllerTest extends AbstractTest
         $form = $crawler->selectButton($this->getUpdateBtn())->form();
         $course = $this->getEntityManager()
             ->getRepository(Course::class)
-            ->findOneBy(['id' => $form['lesson[course]']->getValue()]);
+            ->findOneBy(['id' => $form['lesson[course_id]']->getValue()]);
         // количество до удаления
         $countBeforeDeleting = count($course->getLessons());
 
