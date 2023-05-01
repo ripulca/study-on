@@ -4,15 +4,24 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            id: App\Security\UserProvider
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
-
+            provider: app_user_provider
+            custom_authenticator: App\Security\BillingAuthenticator
+            logout:
+                path: app_logout
+                target: app_course_index
+                # where to redirect after logout
+            remember_me:
+                secret:   '%kernel.secret%' # required
+                lifetime: 604800
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -22,8 +31,16 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+         - { path: ^/login, roles: PUBLIC_ACCESS }
+         - { path: ^/register, roles: PUBLIC_ACCESS }
+         - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
+         - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
+         - { path: ^/(courses|lessons)/\d+$, methods: POST, roles: ROLE_SUPER_ADMIN }
+         - { path: ^/lessons/\d+$, roles: ROLE_USER }
+         - { path: ^/courses/new, roles: ROLE_SUPER_ADMIN }
+         - { path: ^/(courses|lessons)/\d+/edit$, roles: ROLE_SUPER_ADMIN }
+         - { path: ^/courses/\d+/new/lesson$, roles: ROLE_SUPER_ADMIN }
+
 
 when@test:
     security:
