@@ -44,25 +44,23 @@ class BillingClient
 
     public function register($credentials)
     {
-        $response = $this->request(
+        $response = $this->jsonRequest(
             self::POST,
             self::REGISTER_PATH,
             $credentials,
         );
-
-        $result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-        if (isset($result['code'])) {
-            if (409 === $result['code']) {
-                throw new CustomUserMessageAuthenticationException($result['message']);
+        if (isset($response['code'])) {
+            if (409 === $response['code']) {
+                throw new CustomUserMessageAuthenticationException($response['message']);
             }
-            if (400 === $result['code']) {
-                throw new BillingException(json_decode($result['errors']));
+            if (400 === $response['code']) {
+                throw new BillingException(json_decode($response['errors']));
             }
         }
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR)['token'];
     }
 
-    public function getCurrentUser(string $token)
+    public function getCurrentUser(string $token): UserDTO
     {
         $response = $this->jsonRequest(
             self::GET,
@@ -85,7 +83,8 @@ class BillingClient
         return $userDto;
     }
 
-    public function jsonRequest($method, string $path, $body, array $headers = []){
+    public function jsonRequest($method, string $path, $body, array $headers = [])
+    {
         $headers['Accept'] = 'application/json';
         $headers['Content-Type'] = 'application/json';
         return $this->request($method, $path, json_encode($body, JSON_THROW_ON_ERROR), $headers);
@@ -93,15 +92,15 @@ class BillingClient
 
     public function request($method, string $path, $body, array $headers = [])
     {
-        $route=$_ENV['BILLING_URL'] . $path;
+        $route = $_ENV['BILLING_URL'] . $path;
         $query = curl_init($route);
-        $options=[
-            CURLOPT_RETURNTRANSFER=>true,
-            CURLOPT_CUSTOMREQUEST=>$method,
+        $options = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => $method,
         ];
 
         if ($method === self::POST) {
-            $options[CURLOPT_POSTFIELDS]=$body;
+            $options[CURLOPT_POSTFIELDS] = $body;
         }
 
         if (count($headers) > 0) {
@@ -109,7 +108,7 @@ class BillingClient
             foreach ($headers as $name => $value) {
                 $curlHeaders[] = $name . ': ' . $value;
             }
-            $options[CURLOPT_HTTPHEADER]= $curlHeaders;
+            $options[CURLOPT_HTTPHEADER] = $curlHeaders;
         }
         curl_setopt_array($query, $options);
 

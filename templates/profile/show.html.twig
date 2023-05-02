@@ -6,16 +6,13 @@
 
 {% block body %}
 	<h1 class="username">{{ user.username }}</h1>
-	<h3 class="card-text">{{ user.balance }}</h3>
-    <ol class="list-group list-group-numbered roles">
+	<h3 class="card-text">Баланс:
+		<div class="balance">{{ user.balance }}</div>Р</h3>
+	<ol class="list-group list-group-numbered roles">
 		{% for role in user.roles %}
 			<li class="list-group-item role">
-                {{ role }}
+				{{ role }}
 			</li>
 		{% endfor %}
 	</ol>
-	
-	<div>
-		<a class="btn btn-outline-secondary" href="{{ path('app_logout') }}">Выход</a>
-	</div>
 {% endblock %}

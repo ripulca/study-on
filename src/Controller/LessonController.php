@@ -60,7 +60,7 @@ class LessonController extends AbstractController
     #[Route('/{id}/edit', name: 'app_lesson_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, Lesson $lesson, LessonRepository $lessonRepository): Response
     {
-        $form = $this->createForm(LessonType::class, $lesson);
+        $form = $this->createForm(LessonType::class, $lesson, ['course_id' => $lesson->getCourse()->getId()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

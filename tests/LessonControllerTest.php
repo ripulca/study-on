@@ -6,12 +6,14 @@ use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Tests\AbstractTest;
 use App\DataFixtures\AppFixtures;
+use Symfony\Component\HttpFoundation\Response;
 
 class LessonControllerTest extends AbstractTest
 {
     public function testGetActionsResponseOk(): void
     {
         $client = $this->getClient();
+        $this->beforeTesting($client);
         $lessons = $this->getEntityManager()->getRepository(Lesson::class)->findAll();
         foreach ($lessons as $lesson) {
             // детальная страница урока
@@ -28,8 +30,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertResponseOk();
+        $crawler=$this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -40,7 +41,7 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
-        $form = $crawler->selectButton($this->getSaveBtn())->form();
+        $form = $crawler->selectButton(AbstractTest::TEST_SAVE)->form();
         // сохраняем id курса
         $courseId = $form['lesson[course_id]']->getValue();
 
@@ -70,8 +71,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertResponseOk();
+        $crawler=$this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -83,13 +83,13 @@ class LessonControllerTest extends AbstractTest
         $this->assertResponseOk();
 
         // заполняем форму создания урока с пустым порядковым номером
-        $lessonCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+        $lessonCreatingForm = $crawler->selectButton(AbstractTest::TEST_SAVE)->form([
             'lesson[serialNumber]' => '',
             'lesson[name]' => 'Course name for test',
             'lesson[content]' => 'Description lesson for test',
         ]);
         $client->submit($lessonCreatingForm);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -98,12 +98,12 @@ class LessonControllerTest extends AbstractTest
         );
 
         // заполняем форму создания урока с пустым названием
-        $lessonCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+        $lessonCreatingForm = $crawler->selectButton(AbstractTest::TEST_SAVE)->form([
             'lesson[serialNumber]' => '1',
             'lesson[name]' => '',
         ]);
         $client->submit($lessonCreatingForm);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -112,12 +112,12 @@ class LessonControllerTest extends AbstractTest
         );
 
         // заполнили форму с пустым контентом
-        $lessonCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+        $lessonCreatingForm = $crawler->selectButton(AbstractTest::TEST_SAVE)->form([
             'lesson[name]' => 'Course name for test',
             'lesson[content]' => '',
         ]);
         $client->submit($lessonCreatingForm);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -126,13 +126,13 @@ class LessonControllerTest extends AbstractTest
         );
 
         // заполнили форму с порядковым номером больше 10000
-        $lessonCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+        $lessonCreatingForm = $crawler->selectButton(AbstractTest::TEST_SAVE)->form([
             'lesson[serialNumber]' => 10001,
             'lesson[name]' => 'Course name for test',
             'lesson[content]' => 'Description lesson for test',
         ]);
         $client->submit($lessonCreatingForm);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -141,12 +141,12 @@ class LessonControllerTest extends AbstractTest
         );
 
         // заполнили форму с названием больше 255 символов
-        $lessonCreatingForm = $crawler->selectButton($this->getSaveBtn())->form([
+        $lessonCreatingForm = $crawler->selectButton(AbstractTest::TEST_SAVE)->form([
             'lesson[serialNumber]' => 1,
             'lesson[name]' => $this->getLoremIpsum()->words(50),
         ]);
         $client->submit($lessonCreatingForm);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -159,8 +159,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertResponseOk();
+        $crawler=$this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -170,17 +169,16 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
-        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
-        $form = $crawler->selectButton($this->getUpdateBtn())->form();
-
+        $form = $crawler->selectButton(AbstractTest::TEST_UPDATE)->form();
         // сохраняем id курса
         $courseId = $this->getEntityManager()
             ->getRepository(Course::class)
             ->findOneBy([
-                'id' => $form['lesson[course]']->getValue(),
+                'id' => $form['lesson[course_id]']->getValue(),
             ])->getId();
 
         // заполняем форму корректными данными
@@ -209,8 +207,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertResponseOk();
+        $crawler=$this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -220,18 +217,18 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
-        $link = $crawler->selectLink($this->getEditBtn())->link();
+        $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
 
         // пробуем сохранить урок с пустым порядковым номером
-        $form = $crawler->selectButton($this->getUpdateBtn())->form([
+        $form = $crawler->selectButton(AbstractTest::TEST_UPDATE)->form([
             'lesson[serialNumber]' => ' ',
             'lesson[name]' => 'Course name for test',
             'lesson[content]' => 'Description lesson for test',
         ]);
         $client->submit($form);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -244,7 +241,7 @@ class LessonControllerTest extends AbstractTest
         $form['lesson[name]'] = '';
         // 'lesson[content]' => 'Description lesson for test',
         $client->submit($form);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -256,7 +253,7 @@ class LessonControllerTest extends AbstractTest
         $form['lesson[name]'] = 'Course name for test';
         $form['lesson[content]'] = '';
         $client->submit($form);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -269,7 +266,7 @@ class LessonControllerTest extends AbstractTest
         $form['lesson[name]'] = 'Course name for test';
         $form['lesson[content]'] = 'test';
         $client->submit($form);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -282,7 +279,7 @@ class LessonControllerTest extends AbstractTest
         $form['lesson[name]'] = $this->getLoremIpsum()->words(50);
         $form['lesson[content]'] = 'test';
         $client->submit($form);
-        $this->assertResponseCode($this->getCommonError());
+        $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
         $this->assertSelectorTextContains(
@@ -295,8 +292,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу просмотра курса
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertResponseOk();
+        $crawler=$this->beforeTesting($client);
 
         // на детальную страницу курса
         $link = $crawler->filter('.course-show')->first()->link();
@@ -309,10 +305,10 @@ class LessonControllerTest extends AbstractTest
         $this->assertResponseOk();
 
         // сохраняем информацию о курсе
-        $crawler = $client->click($crawler->selectLink($this->getEditBtn())->link());
+        $crawler = $client->click($crawler->selectLink(AbstractTest::TEST_EDIT)->link());
         $this->assertResponseOk();
 
-        $form = $crawler->selectButton($this->getUpdateBtn())->form();
+        $form = $crawler->selectButton(AbstractTest::TEST_UPDATE)->form();
         $course = $this->getEntityManager()
             ->getRepository(Course::class)
             ->findOneBy(['id' => $form['lesson[course_id]']->getValue()]);

@@ -18,7 +18,7 @@ class ProfileController extends AbstractController
         $this->billingClient=$billingClient;
     }
 
-    #[Route(path: '/profile', name: 'app_profile')]
+    #[Route(path: '/profile', name: 'app_profile_show')]
     public function profile(): Response
     {
         $user = $this->billingClient->getCurrentUser($this->getUser()->getApiToken());

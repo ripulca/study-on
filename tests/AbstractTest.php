@@ -4,21 +4,50 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use Exception;
+use App\DTO\UserDTO;
 use joshtronic\LoremIpsum;
+use App\Service\BillingClient;
 use Doctrine\Common\DataFixtures\Loader;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 abstract class AbstractTest extends WebTestCase
 {
-    private const TEST_ADD = 'Добавить';
-    private const TEST_UPDATE = 'Обновить';
-    private const TEST_SAVE = 'Сохранить';
-    private const TEST_EDIT = 'Редактировать';
+    public const TEST_ADD = 'Добавить';
+    public const TEST_UPDATE = 'Обновить';
+    public const TEST_SAVE = 'Сохранить';
+    public const TEST_EDIT = 'Редактировать';
+    public const TEST_REGISTER = 'Зарегистрироваться';
+    public const TEST_AUTH = 'Войти';
+    public const TEST_USER_EMAIL = 'user@studyon.com';
+    public const TEST_ADMIN_EMAIL = 'admin@studyon.com';
+    public const TEST_PASSWORD = 'password';
+    // private static $usersByUsername;
+    private static $fixture_users_by_token;
+    private static $fixture_users = [
+        'user@studyon.com' => [
+            'username' => 'user@studyon.com',
+            'password' => 'password',
+            'roles' => ['ROLE_USER'],
+            'balance' => 100.0,
+            'token' => 'user_token',
+        ],
+        'admin@studyon.com' => [
+            'username' => 'admin@studyon.com',
+            'password' => 'password',
+            'roles' => ['ROLE_USER', 'ROLE_SUPER_ADMIN'],
+            'balance' => 500.0,
+            'token' => 'admin_token',
+        ],
+    ];
 
     /** @var LoremIpsum */
     private static $loremIpsum;
@@ -32,36 +61,6 @@ abstract class AbstractTest extends WebTestCase
             static::$loremIpsum = new LoremIpsum();
         }
         return static::$loremIpsum;
-    }
-
-    public function getAddBtn()
-    {
-        return self::TEST_ADD;
-    }
-
-    public function getUpdateBtn()
-    {
-        return self::TEST_UPDATE;
-    }
-
-    public function getSaveBtn()
-    {
-        return self::TEST_SAVE;
-    }
-
-    public function getEditBtn()
-    {
-        return self::TEST_EDIT;
-    }
-
-    public function getCommonError()
-    {
-        return Response::HTTP_UNPROCESSABLE_ENTITY;
-    }
-
-    public function getNormalCode()
-    {
-        return Response::HTTP_OK;
     }
 
     protected function setUp(): void
@@ -239,5 +238,95 @@ abstract class AbstractTest extends WebTestCase
     private function makeErrorOneLine($text)
     {
         return preg_replace('#[\n\r]+#', ' ', $text);
+    }
+
+    protected function mockBillingClient(KernelBrowser $client)
+    {
+        $client->disableReboot();
+        $testUsername='test@example.com';
+        $testToken='test@example.com.token';
+        $fixture_users_by_token = [
+            'user_token' => [
+                'username' => 'user@studyon.com',
+                'password' => 'password',
+                'roles' => ['ROLE_USER'],
+                'balance' => 100.0,
+            ],
+            'admin_token' => [
+                'username' => 'admin@studyon.com',
+                'password' => 'password',
+                'roles' => ['ROLE_USER', 'ROLE_SUPER_ADMIN'],
+                'balance' => 500.0,
+            ],
+            'new_user_token' => [
+                'username' => '',
+                'password' => '',
+                'roles' => [],
+                'balance' => 0.0,
+            ],
+        ];
+
+        $billingClientMock = $this->getMockBuilder(BillingClient::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['request', 'auth', 'register', 'getCurrentUser'])
+            ->getMock();
+
+        $billingClientMock->method('request')
+            ->willThrowException(new Exception('Bad mock'));
+        $billingClientMock->method('auth')
+            ->willReturnCallback(static function (array $credentials) {
+                $username = $credentials['username'];
+                if (isset(self::$fixture_users[$username])) {
+                    return $testtoken;
+                }
+                throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль');
+            });
+
+        $billingClientMock->method('register')
+            ->willReturnCallback(static function (array $credentials) {
+                $username = $credentials['username'];
+                if (isset(self::$fixture_users[$username])) {
+                    throw new CustomUserMessageAuthenticationException('Email уже существует');
+                }
+                self::$fixture_users[$username] = [
+                    'username' => $username,
+                    'password' => $credentials['password'],
+                    'roles' => ['ROLE_USER'],
+                    'balance' => 0.0,
+                    'token' => 'new_user_token',
+                ];
+                self::$fixture_users_by_token['new_user_token']=self::$fixture_users[$username];
+                return self::$fixture_users[$username]['token'];
+            });
+
+        $billingClientMock->method('getCurrentUser')
+            ->willReturnMap([
+                ['user_token', new UserDTO($fixture_users_by_token['user_token']['username'], $fixture_users_by_token['user_token']['roles'], $fixture_users_by_token['user_token']['balance'])],
+                ['admin_token', new UserDTO($fixture_users_by_token['admin_token']['username'], $fixture_users_by_token['admin_token']['roles'], $fixture_users_by_token['admin_token']['balance'])],
+                ['new_user_token', new UserDTO($testUsername, $fixture_users_by_token['new_user_token']['roles'], $fixture_users_by_token['new_user_token']['balance'])],
+            ]);
+
+        static::getContainer()->set(BillingClient::class, $billingClientMock);
+    }
+
+    protected function authorize(AbstractBrowser $client, string $login, string $password): ?Crawler
+    {
+        $crawler = $client->clickLink('Вход');
+
+        $form = $crawler->filter('form')->first()->form();
+        $form['email'] = $login;
+        $form['password'] = $password;
+
+        $crawler = $client->submit($form);
+        return $crawler;
+    }
+
+    public function beforeTesting($client)
+    {
+        $this->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $this->authorize($client, self::TEST_ADMIN_EMAIL, self::TEST_PASSWORD);
+        $this->assertResponseRedirect();
+        return $crawler;
     }
 }

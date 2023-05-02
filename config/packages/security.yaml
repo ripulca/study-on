@@ -31,15 +31,14 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+         - { path: ^/(courses|lessons)/, roles: ROLE_USER }
          - { path: ^/login, roles: PUBLIC_ACCESS }
          - { path: ^/register, roles: PUBLIC_ACCESS }
          - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
          - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
-         - { path: ^/(courses|lessons)/\d+$, methods: POST, roles: ROLE_SUPER_ADMIN }
-         - { path: ^/lessons/\d+$, roles: ROLE_USER }
-         - { path: ^/courses/new, roles: ROLE_SUPER_ADMIN }
+         - { path: ^/(courses|lessons)/new, roles: ROLE_SUPER_ADMIN }
          - { path: ^/(courses|lessons)/\d+/edit$, roles: ROLE_SUPER_ADMIN }
-         - { path: ^/courses/\d+/new/lesson$, roles: ROLE_SUPER_ADMIN }
+         - { path: ^/(courses|lessons)/\d+$, methods: POST, roles: ROLE_SUPER_ADMIN }
 
 
 when@test:
