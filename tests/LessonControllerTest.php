@@ -30,7 +30,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -71,7 +71,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -159,7 +159,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -207,7 +207,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -292,7 +292,7 @@ class LessonControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу просмотра курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         // на детальную страницу курса
         $link = $crawler->filter('.course-show')->first()->link();

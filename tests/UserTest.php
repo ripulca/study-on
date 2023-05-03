@@ -59,10 +59,52 @@ class UserTest extends AbstractTest
         $client->clickLink('Выход');
         $this->assertResponseOk();
     }
-    // public function testFailedAuth(): void
-    // {
+    public function testNoEmailAuth(): void
+    {
+        $client = static::getClient();
+        $client->followRedirects();
+
+        $this->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, '', $this->fixture_password);
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
         
-    // }
+    }
+    public function testWrongEmailAuth(): void
+    {
+        $client = static::getClient();
+        $client->followRedirects();
+
+        $this->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, 'eiwurtuef', $this->fixture_password);
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        
+    }
+    public function testNoPasswordAuth(): void
+    {
+        $client = static::getClient();
+        $client->followRedirects();
+
+        $this->mockBillingClient($client);
+
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, $this->fixture_user_email, '');
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        
+    }
+    public function testWrongPasswordAuth(): void
+    {
+        $client = static::getClient();
+        $client->followRedirects();
+
+        $this->mockBillingClient($client);
+
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, $this->fixture_user_email, '12345');
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        
+    }
     public function testSuccessRegisterAndAuth(): void
     {
         $client = static::getClient();
@@ -81,13 +123,9 @@ class UserTest extends AbstractTest
             'register_form[password][second]' => $password,
         ]);
         $crawler = $client->submit($form);
-        // $this->assertResponseOk();
-        // $this->assertRouteSame('app_course_index');
-        $crawler=$this->authorize($client, $email, $password);
         
-        // $crawler = $client->clickLink('Профиль');
-        // $this->assertResponseOk();
-        dd($crawler);
+        $crawler = $client->clickLink('Профиль');
+        $this->assertResponseOk();
         $check_email=$crawler->filter('.username')->text();
         $check_balance=$crawler->filter('.balance')->text();
         $check_roles = $crawler->filter('.role')->each(function ($node, $i) {
@@ -106,7 +144,7 @@ class UserTest extends AbstractTest
         $client->clickLink('Выход');
         $this->assertResponseOk();
     }
-    public function testFailedRegister(): void
+    public function testPasswordsNotEqualRegister(): void
     {
         $client = static::getClient();
 
@@ -119,26 +157,47 @@ class UserTest extends AbstractTest
         $email = 'test@example.com';
         $password = 'test_password';
 
-        // Нет пароля
-        $form['register_form[email]'] = $email;
-        $crawler = $client->submit($form);
-        $this->assertResponseOk();
-        $this->assertEquals('Пожалуйста, придумайте пароль', $crawler->filter('.invalid-feedback')->text());
-
         // Пароли не совпали
         $form['register_form[email]'] = $email;
         $form['register_form[password][first]'] = $password;
         $form['register_form[password][second]'] = $password . '1';
         $crawler = $client->submit($form);
-        $this->assertResponseOk();
         $this->assertEquals('Пароли должны совпадать', $crawler->filter('.invalid-feedback')->text());
+    }
+    public function testNoPasswordRegister(): void
+    {
+        $client = static::getClient();
+
+        $this->mockBillingClient($client);
+
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $form = $crawler->filter('form')->first()->form();
+
+        $email = 'test@example.com';
+
+        // Нет пароля
+        $form['register_form[email]'] = $email;
+        $crawler = $client->submit($form);
+        $this->assertEquals('Пожалуйста, придумайте пароль', $crawler->filter('.invalid-feedback')->text());
+    }
+    public function testEmailNotUniqueRegister(): void
+    {
+        $client = static::getClient();
+
+        $this->mockBillingClient($client);
+
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $form = $crawler->filter('form')->first()->form();
+
+        $password = 'test_password';
 
         // Такой логин уже существует
         $form['register_form[email]'] = $this->fixture_user_email;
         $form['register_form[password][first]'] = $password;
         $form['register_form[password][second]'] = $password;
         $crawler = $client->submit($form);
-        $this->assertResponseOk();
         $this->assertEquals('Email уже существует', $crawler->filter('.alert')->text());
     }
 }

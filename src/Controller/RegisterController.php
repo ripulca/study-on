@@ -32,7 +32,7 @@ class RegisterController extends AbstractController
     public function register(
         Request $request,
         UserAuthenticatorInterface $userAuthenticator,
-        BillingAuthenticator $loginAuthenticator,
+        BillingAuthenticator $billingAuthenticator,
         AuthenticationUtils $authenticationUtils
     ): Response {
 
@@ -65,7 +65,7 @@ class RegisterController extends AbstractController
 
             return $userAuthenticator->authenticateUser(
                 $user,
-                $loginAuthenticator,
+                $billingAuthenticator,
                 $request
             );
         }

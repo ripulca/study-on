@@ -30,7 +30,6 @@ abstract class AbstractTest extends WebTestCase
     public const TEST_USER_EMAIL = 'user@studyon.com';
     public const TEST_ADMIN_EMAIL = 'admin@studyon.com';
     public const TEST_PASSWORD = 'password';
-    // private static $usersByUsername;
     private static $fixture_users_by_token;
     private static $fixture_users = [
         'user@studyon.com' => [
@@ -243,8 +242,7 @@ abstract class AbstractTest extends WebTestCase
     protected function mockBillingClient(KernelBrowser $client)
     {
         $client->disableReboot();
-        $testUsername='test@example.com';
-        $testToken='test@example.com.token';
+        $testUsername = 'test@example.com';
         $fixture_users_by_token = [
             'user_token' => [
                 'username' => 'user@studyon.com',
@@ -259,9 +257,9 @@ abstract class AbstractTest extends WebTestCase
                 'balance' => 500.0,
             ],
             'new_user_token' => [
-                'username' => '',
-                'password' => '',
-                'roles' => [],
+                'username' => null,
+                'password' => null,
+                'roles' => ['ROLE_USER'],
                 'balance' => 0.0,
             ],
         ];
@@ -276,8 +274,11 @@ abstract class AbstractTest extends WebTestCase
         $billingClientMock->method('auth')
             ->willReturnCallback(static function (array $credentials) {
                 $username = $credentials['username'];
+                $password = $credentials['password'];
                 if (isset(self::$fixture_users[$username])) {
-                    return $testtoken;
+                    if (self::$fixture_users[$username]['password'] == $password) {
+                        return self::$fixture_users[$username]['token'];
+                    }
                 }
                 throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль');
             });
@@ -295,7 +296,7 @@ abstract class AbstractTest extends WebTestCase
                     'balance' => 0.0,
                     'token' => 'new_user_token',
                 ];
-                self::$fixture_users_by_token['new_user_token']=self::$fixture_users[$username];
+                $fixture_users_by_token['new_user_token'] = self::$fixture_users[$username];
                 return self::$fixture_users[$username]['token'];
             });
 
