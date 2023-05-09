@@ -6,8 +6,7 @@
 
 {% block body %}
 	<h1 class="username">{{ user.username }}</h1>
-	<h3 class="card-text">Баланс:
-		<div class="balance">{{ user.balance }}</div>Р</h3>
+	<h3 style="display: flex">Баланс:<div class="balance">{{ user.balance }}</div>Р</h3>
 	<ol class="list-group list-group-numbered roles">
 		{% for role in user.roles %}
 			<li class="list-group-item role">

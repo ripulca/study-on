@@ -64,7 +64,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -99,7 +99,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -125,7 +125,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -151,7 +151,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -179,7 +179,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -205,7 +205,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -231,7 +231,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -257,7 +257,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -295,7 +295,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -308,12 +308,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -341,7 +341,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -354,12 +354,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -387,7 +387,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -400,12 +400,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -432,7 +432,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -445,12 +445,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -476,7 +476,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -489,12 +489,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -521,7 +521,7 @@ class CourseControllerTest extends AbstractTest
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         $link = $crawler->selectLink(AbstractTest::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -534,12 +534,12 @@ class CourseControllerTest extends AbstractTest
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
-        
-        $course_id= $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
-        $crawler = $client->request('GET', '/courses/'.$course_id);
+        $crawler = $client->request('GET', '/courses/' . $course_id);
         $this->assertResponseOk();
 
         $link = $crawler->selectLink(AbstractTest::TEST_EDIT)->link();
@@ -566,14 +566,14 @@ class CourseControllerTest extends AbstractTest
     {
         // страница со списком курсов
         $client = $this->getClient();
-        $crawler=$this->beforeTesting($client);
+        $crawler = $this->beforeTesting($client);
 
         // подсчитываем количество курсов
-        $allCourses=$this->getEntityManager()->getRepository(Course::class)->findAll();
+        $allCourses = $this->getEntityManager()->getRepository(Course::class)->findAll();
         $allCoursesCount = count($allCourses);
-        $courseToDelete=$allCourses[$allCoursesCount-1];
+        $courseToDelete = $allCourses[$allCoursesCount - 1];
 
-        $crawler = $client->request('GET', '/courses/'.$courseToDelete->getId());
+        $crawler = $client->request('GET', '/courses/' . $courseToDelete->getId());
         $courseLessonsCount = count($courseToDelete->getLessons());
         // количество до удаления
         $allLessonsCount = count($this->getEntityManager()

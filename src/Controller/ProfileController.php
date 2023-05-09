@@ -12,10 +12,11 @@ class ProfileController extends AbstractController
 {
     private BillingClient $billingClient;
     private Security $security;
-    
-    public function __construct(Security $security, BillingClient $billingClient){
-        $this->security=$security;
-        $this->billingClient=$billingClient;
+
+    public function __construct(Security $security, BillingClient $billingClient)
+    {
+        $this->security = $security;
+        $this->billingClient = $billingClient;
     }
 
     #[Route(path: '/profile', name: 'app_profile_show')]
