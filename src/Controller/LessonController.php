@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/lesson')]
 class LessonController extends AbstractController
@@ -33,6 +34,7 @@ class LessonController extends AbstractController
     }
 
     #[Route('/new', name: 'app_lesson_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function new(Request $request, LessonRepository $lessonRepository, CourseRepository $courseRepository): Response
     {
         $course_id= (int)$request->query->get('course');
@@ -58,6 +60,7 @@ class LessonController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_lesson_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function edit(Request $request, Lesson $lesson, LessonRepository $lessonRepository): Response
     {
         $form = $this->createForm(LessonType::class, $lesson, ['course_id' => $lesson->getCourse()->getId()]);
@@ -76,6 +79,7 @@ class LessonController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_lesson_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function delete(Request $request, Lesson $lesson, LessonRepository $lessonRepository): Response
     {
         $course_id = $lesson->getCourse()->getId();

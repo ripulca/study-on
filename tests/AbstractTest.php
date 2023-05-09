@@ -30,23 +30,6 @@ abstract class AbstractTest extends WebTestCase
     public const TEST_USER_EMAIL = 'user@studyon.com';
     public const TEST_ADMIN_EMAIL = 'admin@studyon.com';
     public const TEST_PASSWORD = 'password';
-    private static $fixture_users_by_token;
-    private static $fixture_users = [
-        'user@studyon.com' => [
-            'username' => 'user@studyon.com',
-            'password' => 'password',
-            'roles' => ['ROLE_USER'],
-            'balance' => 100.0,
-            'token' => 'user_token',
-        ],
-        'admin@studyon.com' => [
-            'username' => 'admin@studyon.com',
-            'password' => 'password',
-            'roles' => ['ROLE_USER', 'ROLE_SUPER_ADMIN'],
-            'balance' => 500.0,
-            'token' => 'admin_token',
-        ],
-    ];
 
     /** @var LoremIpsum */
     private static $loremIpsum;
@@ -238,6 +221,23 @@ abstract class AbstractTest extends WebTestCase
     {
         return preg_replace('#[\n\r]+#', ' ', $text);
     }
+    private static $fixture_users_by_token;
+    private static $fixture_users = [
+        'user@studyon.com' => [
+            'username' => 'user@studyon.com',
+            'password' => 'password',
+            'roles' => ['ROLE_USER'],
+            'balance' => 100.0,
+            'token' => 'user_token',
+        ],
+        'admin@studyon.com' => [
+            'username' => 'admin@studyon.com',
+            'password' => 'password',
+            'roles' => ['ROLE_USER', 'ROLE_SUPER_ADMIN'],
+            'balance' => 500.0,
+            'token' => 'admin_token',
+        ],
+    ];
 
     protected function mockBillingClient(KernelBrowser $client)
     {

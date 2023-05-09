@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/courses')]
 class CourseController extends AbstractController
@@ -22,6 +23,7 @@ class CourseController extends AbstractController
     }
 
     #[Route('/new', name: 'app_course_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function new(Request $request, CourseRepository $courseRepository): Response
     {
         $course = new Course();
@@ -49,6 +51,7 @@ class CourseController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function edit(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
         $form = $this->createForm(CourseType::class, $course);
@@ -67,6 +70,7 @@ class CourseController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_course_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_SUPER_ADMIN')]
     public function delete(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
         if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->request->get('_token'))) {
