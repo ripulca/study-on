@@ -19,6 +19,7 @@ class BillingClient
     protected const AUTH_PATH = '/auth';
     protected const REGISTER_PATH = '/register';
     protected const GET_CURRENT_USER_PATH = '/users/current';
+    protected const REFRESH_TOKEN = '/token/refresh';
 
     public function __construct(ValidatorInterface $validator)
     {
@@ -81,6 +82,20 @@ class BillingClient
             throw new BillingUnavailableException('User data is not valid');
         }
         return $userDto;
+    }
+
+    public function refreshToken(string $refreshToken): array
+    {
+        $response = $this->jsonRequest(
+            self::POST,
+            self::REFRESH_TOKEN,
+            ['refresh_token' => $refreshToken],
+        );
+        if ($response['code'] >= 400) {
+            throw new BillingUnavailableException();
+        }
+
+        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
     public function jsonRequest($method, string $path, $body, array $headers = [])

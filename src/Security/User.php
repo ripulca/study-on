@@ -13,6 +13,8 @@ class User implements UserInterface
 
     private string $apiToken;
 
+    private string $refreshToken;
+
     public static function fromDto(UserDTO $userDto): User
     {
         return (new self())
@@ -80,11 +82,40 @@ class User implements UserInterface
     }
 
     /**
+     * @return mixed
+     */
+    public function getRefreshToken()
+    {
+        return $this->refreshToken;
+    }
+
+    /**
+     * @param string $refreshToken
+     * @return User
+     */
+    public function setRefreshToken(string $refreshToken): self
+    {
+        $this->refreshToken = $refreshToken;
+
+        return $this;
+    }
+
+    /**
      * @see UserInterface
      */
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public static function jwtDecode(string $token): array
+    {
+        $tokenPayload = explode('.', $token);
+        $payload = json_decode(base64_decode($tokenPayload[1]), true, 512, JSON_THROW_ON_ERROR);
+        return [$payload['exp'], $payload['email'], $payload['roles']];
     }
 }

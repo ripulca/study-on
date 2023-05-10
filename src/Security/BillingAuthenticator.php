@@ -40,24 +40,25 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
         $password = $request->request->get('password', '');
 
         try {
-            $token = $this->billingClient->auth(['username' => $email, 'password' => $password]);
+            $token_data = $this->billingClient->auth(['username' => $email, 'password' => $password]);
         } catch (BillingUnavailableException|JsonException $e) {
             throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
         }
-        $request->getSession()->set(Security::LAST_USERNAME, $email);
+        $refreshToken = $token_data['refresh_token'];
 
-        $userLoader = function ($token): UserInterface {
+        $userLoader = function ($token) use ($refreshToken): UserInterface {
             try {
                 $userDto = $this->billingClient->getCurrentUser($token);
             } catch (BillingUnavailableException|JsonException $e) {
                 throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
             }
             return User::fromDto($userDto)
-                ->setApiToken($token);
+                ->setApiToken($token)
+                ->setRefreshToken($refreshToken);
         };
 
         return new SelfValidatingPassport(
-            new UserBadge($token, $userLoader),
+            new UserBadge($token_data, $userLoader),
             [
                 new CsrfTokenBadge('authenticate', $request->get('_csrf_token')),
             ]
