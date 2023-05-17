@@ -5,14 +5,12 @@ namespace App\Service;
 use App\DTO\UserDTO;
 use JMS\Serializer\Serializer;
 use App\Exception\BillingException;
-use JMS\Serializer\SerializerBuilder;
+use JMS\Serializer\SerializerInterface;
 use App\Exception\BillingUnavailableException;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class BillingClient
 {
-    private ValidatorInterface $validator;
     private Serializer $serializer;
     protected const GET = 'GET';
     protected const POST = 'POST';
@@ -21,10 +19,9 @@ class BillingClient
     protected const GET_CURRENT_USER_PATH = '/users/current';
     protected const REFRESH_TOKEN = '/token/refresh';
 
-    public function __construct(ValidatorInterface $validator)
+    public function __construct(SerializerInterface $serializer)
     {
-        $this->validator = $validator;
-        $this->serializer = SerializerBuilder::create()->build();
+        $this->serializer = $serializer;
     }
 
     public function auth($credentials)
@@ -77,10 +74,6 @@ class BillingClient
         }
 
         $userDto = $this->serializer->deserialize($response['body'], UserDTO::class, 'json');
-        $errors = $this->validator->validate($userDto);
-        if (count($errors) > 0) {
-            throw new BillingUnavailableException('User data is not valid');
-        }
         return $userDto;
     }
 

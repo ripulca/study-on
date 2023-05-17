@@ -6,7 +6,6 @@ namespace App\Tests;
 
 use Exception;
 use joshtronic\LoremIpsum;
-use App\Tests\Mock\BillingMock;
 use Doctrine\Common\DataFixtures\Loader;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,19 +37,6 @@ abstract class AbstractTest extends WebTestCase
             static::$loremIpsum = new LoremIpsum();
         }
         return static::$loremIpsum;
-    }
-
-    public function billingClient()
-    {
-        $client=$this->getClient();
-        $client->disableReboot();
-
-        $client->getContainer()->set(
-            BillingClient::class,
-            new BillingMock()
-        );
-
-        return $client;
     }
 
     protected function setUp(): void

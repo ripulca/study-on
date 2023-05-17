@@ -70,7 +70,7 @@ class SecurityController extends AbstractController
                     'username' => $form->get('email')->getData(),
                     'password' => $form->get('password')->getData()
                 ]);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 if ($e instanceof CustomUserMessageAuthenticationException) {
                     $error = $e->getMessage();
                 } else {

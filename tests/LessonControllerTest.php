@@ -5,10 +5,11 @@ namespace App\Tests;
 use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Tests\AbstractTest;
+use App\Tests\Mock\BillingMock;
 use App\DataFixtures\AppFixtures;
 use Symfony\Component\HttpFoundation\Response;
 
-class LessonControllerTest extends AbstractTest
+class LessonControllerTest extends BillingMock
 {
     // public function testGetActionsResponseOk(): void
     // {
@@ -41,7 +42,7 @@ class LessonControllerTest extends AbstractTest
     //     $crawler = $client->click($link);
     //     $this->assertResponseOk();
 
-    //     $form = $crawler->selectButton(UserTestData::TEST_SAVE)->form();
+    //     $form = $crawler->selectButton(BillingMock::TEST_SAVE)->form();
     //     // сохраняем id курса
     //     $courseId = $form['lesson[course_id]']->getValue();
 
@@ -83,7 +84,7 @@ class LessonControllerTest extends AbstractTest
     //     $this->assertResponseOk();
 
     //     // заполняем форму создания урока с пустым порядковым номером
-    //     $lessonCreatingForm = $crawler->selectButton(UserTestData::TEST_SAVE)->form([
+    //     $lessonCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
     //         'lesson[serialNumber]' => '',
     //         'lesson[name]' => 'Course name for test',
     //         'lesson[content]' => 'Description lesson for test',
@@ -98,7 +99,7 @@ class LessonControllerTest extends AbstractTest
     //     );
 
     //     // заполняем форму создания урока с пустым названием
-    //     $lessonCreatingForm = $crawler->selectButton(UserTestData::TEST_SAVE)->form([
+    //     $lessonCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
     //         'lesson[serialNumber]' => '1',
     //         'lesson[name]' => '',
     //     ]);
@@ -112,7 +113,7 @@ class LessonControllerTest extends AbstractTest
     //     );
 
     //     // заполнили форму с пустым контентом
-    //     $lessonCreatingForm = $crawler->selectButton(UserTestData::TEST_SAVE)->form([
+    //     $lessonCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
     //         'lesson[name]' => 'Course name for test',
     //         'lesson[content]' => '',
     //     ]);
@@ -126,7 +127,7 @@ class LessonControllerTest extends AbstractTest
     //     );
 
     //     // заполнили форму с порядковым номером больше 10000
-    //     $lessonCreatingForm = $crawler->selectButton(UserTestData::TEST_SAVE)->form([
+    //     $lessonCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
     //         'lesson[serialNumber]' => 10001,
     //         'lesson[name]' => 'Course name for test',
     //         'lesson[content]' => 'Description lesson for test',
@@ -141,7 +142,7 @@ class LessonControllerTest extends AbstractTest
     //     );
 
     //     // заполнили форму с названием больше 255 символов
-    //     $lessonCreatingForm = $crawler->selectButton(UserTestData::TEST_SAVE)->form([
+    //     $lessonCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
     //         'lesson[serialNumber]' => 1,
     //         'lesson[name]' => $this->getLoremIpsum()->words(50),
     //     ]);
@@ -169,11 +170,11 @@ class LessonControllerTest extends AbstractTest
     //     $crawler = $client->click($link);
     //     $this->assertResponseOk();
 
-    //     $link = $crawler->selectLink(UserTestData::TEST_EDIT)->link();
+    //     $link = $crawler->selectLink(BillingMock::TEST_EDIT)->link();
     //     $crawler = $client->click($link);
     //     $this->assertResponseOk();
 
-    //     $form = $crawler->selectButton(UserTestData::TEST_UPDATE)->form();
+    //     $form = $crawler->selectButton(BillingMock::TEST_UPDATE)->form();
     //     // сохраняем id курса
     //     $courseId = $this->getEntityManager()
     //         ->getRepository(Course::class)
@@ -217,12 +218,12 @@ class LessonControllerTest extends AbstractTest
     //     $crawler = $client->click($link);
     //     $this->assertResponseOk();
 
-    //     $link = $crawler->selectLink(UserTestData::TEST_EDIT)->link();
+    //     $link = $crawler->selectLink(BillingMock::TEST_EDIT)->link();
     //     $crawler = $client->click($link);
     //     $this->assertResponseOk();
 
     //     // пробуем сохранить урок с пустым порядковым номером
-    //     $form = $crawler->selectButton(UserTestData::TEST_UPDATE)->form([
+    //     $form = $crawler->selectButton(BillingMock::TEST_UPDATE)->form([
     //         'lesson[serialNumber]' => ' ',
     //         'lesson[name]' => 'Course name for test',
     //         'lesson[content]' => 'Description lesson for test',
@@ -305,10 +306,10 @@ class LessonControllerTest extends AbstractTest
     //     $this->assertResponseOk();
 
     //     // сохраняем информацию о курсе
-    //     $crawler = $client->click($crawler->selectLink(UserTestData::TEST_EDIT)->link());
+    //     $crawler = $client->click($crawler->selectLink(BillingMock::TEST_EDIT)->link());
     //     $this->assertResponseOk();
 
-    //     $form = $crawler->selectButton(UserTestData::TEST_UPDATE)->form();
+    //     $form = $crawler->selectButton(BillingMock::TEST_UPDATE)->form();
     //     $course = $this->getEntityManager()
     //         ->getRepository(Course::class)
     //         ->findOneBy(['id' => $form['lesson[course_id]']->getValue()]);
