@@ -70,17 +70,17 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         }
 
         try {
-            $tokenPayload = User::jwtDecode($user->getApiToken());
-        } catch (JsonException $e) {
+            [$exp, $email, $roles] = User::jwtDecode($user->getApiToken());
+        } catch (\JsonException $e) {
             throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
         }
 
-        $tokenExpiredTime = (new DateTime())->setTimestamp($tokenPayload['exp'] + 10);
+        $tokenExpiredTime = (new DateTime())->setTimestamp($exp + 10);
 
         if ($tokenExpiredTime <= new DateTime()) {
             try {
                 $tokens = $this->billingClient->refreshToken($user->getRefreshToken());
-            } catch (BillingUnavailableException|JsonException $e) {
+            } catch (BillingUnavailableException|\JsonException $e) {
                 throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
             }
             $user->setApiToken($tokens['token'])

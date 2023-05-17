@@ -58,7 +58,7 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
         };
 
         return new SelfValidatingPassport(
-            new UserBadge($token_data, $userLoader),
+            new UserBadge($token_data['token'], $userLoader),
             [
                 new CsrfTokenBadge('authenticate', $request->get('_csrf_token')),
             ]

@@ -40,7 +40,7 @@ class BillingClient
         if ($response['code'] >= 400) {
             throw new BillingUnavailableException();
         }
-        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR)['token'];
+        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
     public function register($credentials)
