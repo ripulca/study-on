@@ -75,7 +75,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
         }
 
-        $tokenExpiredTime = (new DateTime())->setTimestamp($exp + 10);
+        $tokenExpiredTime = (new DateTime())->setTimestamp($exp + 20);
 
         if ($tokenExpiredTime <= new DateTime()) {
             try {

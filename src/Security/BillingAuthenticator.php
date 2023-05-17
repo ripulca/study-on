@@ -3,7 +3,6 @@
 namespace App\Security;
 
 use App\Service\BillingClient;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use App\Exception\BillingUnavailableException;
 use Symfony\Component\HttpFoundation\Response;

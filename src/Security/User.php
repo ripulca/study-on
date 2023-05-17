@@ -110,7 +110,7 @@ class User implements UserInterface
     }
 
     /**
-     * @throws JsonException
+     * @throws \JsonException
      */
     public static function jwtDecode(string $token): array
     {

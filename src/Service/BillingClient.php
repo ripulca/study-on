@@ -58,7 +58,7 @@ class BillingClient
                 throw new BillingException(json_decode($response['errors']));
             }
         }
-        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR)['token'];
+        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
     public function getCurrentUser(string $token): UserDTO
