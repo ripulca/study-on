@@ -2,9 +2,13 @@
 
 namespace App\Tests;
 
+use App\Tests\AbstractTest;
 use App\Tests\Mock\BillingMock;
+use App\DataFixtures\AppFixtures;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 
-class UserTest extends BillingMock
+class UserTest extends AbstractTest
 {
     private string $fixture_user_email="user@studyon.com";
     private float $fixture_user_balance=100.0;
@@ -14,191 +18,209 @@ class UserTest extends BillingMock
     private const admin_role="ROLE_SUPER_ADMIN";
     private string $fixture_password="password";
 
-    // public function testSuccessAuthAndProfile(): void
-    // {
-    //     $client = static::getClient();
-    //     $client->followRedirects();
+    public function testSuccessAuthAndProfile(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
 
-    //     $this->mockBillingClient($client);
+        $client=$mock->mockBillingClient($client);
 
-    //     $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/');
 
-    //     // Входим как обычный пользователь
-    //     $this->authorize($client, $this->fixture_user_email, $this->fixture_password);
-    //     $crawler = $client->clickLink('Профиль');
-    //     $this->assertResponseOk();
+        // Входим как обычный пользователь
+        $crawler = $this->authorize($client, $this->fixture_user_email, $this->fixture_password);
+        $crawler = $client->clickLink('Профиль');
+        $this->assertResponseOk();
 
-    //     $email=$crawler->filter('.username')->text();
-    //     $balance=$crawler->filter('.balance')->text();
-    //     $roles = $crawler->filter('.role')->each(function ($node, $i) {
-    //         return $node->text();
-    //     });
+        $email=$crawler->filter('.username')->text();
+        $balance=$crawler->filter('.balance')->text();
+        $roles = $crawler->filter('.role')->each(function ($node, $i) {
+            return $node->text();
+        });
 
-    //     $this->assertEquals($email, $this->fixture_user_email);
-    //     $this->assertEquals($roles[0], self::user_role);
-    //     $this->assertEquals($balance, $this->fixture_user_balance);
+        $this->assertEquals($email, $this->fixture_user_email);
+        $this->assertEquals($roles[0], self::user_role);
+        $this->assertEquals($balance, $this->fixture_user_balance);
 
-    //     $client->clickLink('Выход');
-    //     $this->assertResponseOk();
+        $client->clickLink('Выход');
+        $this->assertResponseOk();
 
-    //     // Входим как админ
-    //     $this->authorize($client, $this->fixture_admin_email, $this->fixture_password);
-    //     $crawler = $client->clickLink('Профиль');
-    //     $this->assertResponseOk();
+        // Входим как админ
+        $crawler = $this->authorize($client, $this->fixture_admin_email, $this->fixture_password);
+        $crawler = $client->clickLink('Профиль');
+        $this->assertResponseOk();
 
-    //     $email=$crawler->filter('.username')->text();
-    //     $balance=$crawler->filter('.balance')->text();
-    //     $roles = $crawler->filter('.role')->each(function ($node, $i) {
-    //         return $node->text();
-    //     });
+        $email=$crawler->filter('.username')->text();
+        $balance=$crawler->filter('.balance')->text();
+        $roles = $crawler->filter('.role')->each(function ($node, $i) {
+            return $node->text();
+        });
 
-    //     $this->assertEquals($email, $this->fixture_admin_email);
-    //     $this->assertEquals($roles[0], self::user_role);
-    //     $this->assertEquals($roles[1], self::admin_role);
-    //     $this->assertEquals($balance, $this->fixture_admin_balance);
+        $this->assertEquals($email, $this->fixture_admin_email);
+        $this->assertEquals($roles[0], self::user_role);
+        $this->assertEquals($roles[1], self::admin_role);
+        $this->assertEquals($balance, $this->fixture_admin_balance);
 
-    //     $client->clickLink('Выход');
-    //     $this->assertResponseOk();
-    // }
-    // public function testNoEmailAuth(): void
-    // {
-    //     $client = static::getClient();
-    //     $client->followRedirects();
+        $client->clickLink('Выход');
+        $this->assertResponseOk();
+    }
+    public function testNoEmailAuth(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $this->mockBillingClient($client);
-    //     $crawler = $client->request('GET', '/');
-    //     $crawler=$this->authorize($client, '', $this->fixture_password);
-    //     $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, '', $this->fixture_password);
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
         
-    // }
-    // public function testWrongEmailAuth(): void
-    // {
-    //     $client = static::getClient();
-    //     $client->followRedirects();
+    }
+    public function testWrongEmailAuth(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $this->mockBillingClient($client);
-    //     $crawler = $client->request('GET', '/');
-    //     $crawler=$this->authorize($client, 'eiwurtuef', $this->fixture_password);
-    //     $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, 'eiwurtuef', $this->fixture_password);
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
         
-    // }
-    // public function testNoPasswordAuth(): void
-    // {
-    //     $client = static::getClient();
-    //     $client->followRedirects();
+    }
+    public function testNoPasswordAuth(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $this->mockBillingClient($client);
-
-    //     $crawler = $client->request('GET', '/');
-    //     $crawler=$this->authorize($client, $this->fixture_user_email, '');
-    //     $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, $this->fixture_user_email, '');
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
         
-    // }
-    // public function testWrongPasswordAuth(): void
-    // {
-    //     $client = static::getClient();
-    //     $client->followRedirects();
+    }
+    public function testWrongPasswordAuth(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $this->mockBillingClient($client);
-
-    //     $crawler = $client->request('GET', '/');
-    //     $crawler=$this->authorize($client, $this->fixture_user_email, '12345');
-    //     $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
+        $crawler = $client->request('GET', '/');
+        $crawler=$this->authorize($client, $this->fixture_user_email, '12345');
+        $this->assertEquals('Неправильные логин или пароль', $crawler->filter('.alert-danger')->text());
         
-    // }
-    // public function testSuccessRegisterAndAuth(): void
-    // {
-    //     $client = static::getClient();
+    }
+    public function testSuccessRegister(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $this->mockBillingClient($client);
+        $email = 'test@example.com';
+        $password = 'test_password';
 
-    //     $email = 'test@example.com';
-    //     $password = 'test_password';
-
-    //     $client->request('GET', '/');
-    //     $crawler = $client->clickLink('Регистрация');
-    //     $client->followRedirects();
-    //     $form = $crawler->selectButton(BillingMock::TEST_REGISTER)->form([
-    //         'register_form[email]' => $email,
-    //         'register_form[password][first]' => $password,
-    //         'register_form[password][second]' => $password,
-    //     ]);
-    //     $crawler = $client->submit($form);
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $client->followRedirects();
+        $form = $crawler->filter('form')->first()->form();
+        $form['register_form[email]'] = $email;
+        $form['register_form[password][first]'] = $password;
+        $form['register_form[password][second]'] = $password;
+        $crawler = $client->submit($form);
         
-    //     $crawler = $client->clickLink('Профиль');
-    //     $this->assertResponseOk();
-    //     $check_email=$crawler->filter('.username')->text();
-    //     $check_balance=$crawler->filter('.balance')->text();
-    //     $check_roles = $crawler->filter('.role')->each(function ($node, $i) {
-    //         return $node->text();
-    //     });
+        $crawler = $client->clickLink('Профиль');
+        $this->assertResponseOk();
+        $check_email=$crawler->filter('.username')->text();
+        $check_balance=$crawler->filter('.balance')->text();
+        $check_roles = $crawler->filter('.role')->each(function ($node, $i) {
+            return $node->text();
+        });
 
-    //     $this->assertEquals($check_email, $email);
-    //     $this->assertEquals($check_roles[0], 'ROLE_USER');
-    //     $this->assertEquals($check_balance, 0);
+        $this->assertEquals($check_email, $email);
+        $this->assertEquals($check_roles[0], 'ROLE_USER');
+        $this->assertEquals($check_balance, 0);
 
-    //     $client->clickLink('Выход');
-    //     $this->assertResponseOk();
+        $client->clickLink('Выход');
+        $this->assertResponseOk();
+    }
+    public function testPasswordsNotEqualRegister(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     // Входим еще раз
-    //     $this->authorize($client, $email, $password);
-    //     $client->clickLink('Выход');
-    //     $this->assertResponseOk();
-    // }
-    // public function testPasswordsNotEqualRegister(): void
-    // {
-    //     $client = static::getClient();
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $form = $crawler->filter('form')->first()->form();
 
-    //     $this->mockBillingClient($client);
+        $email = 'test@example.com';
+        $password = 'test_password';
 
-    //     $client->request('GET', '/');
-    //     $crawler = $client->clickLink('Регистрация');
-    //     $form = $crawler->filter('form')->first()->form();
+        // Пароли не совпали
+        $form['register_form[email]'] = $email;
+        $form['register_form[password][first]'] = $password;
+        $form['register_form[password][second]'] = $password . '1';
+        $crawler = $client->submit($form);
+        $this->assertEquals('Пароли должны совпадать', $crawler->filter('.invalid-feedback')->text());
+    }
+    public function testNoPasswordRegister(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $email = 'test@example.com';
-    //     $password = 'test_password';
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $form = $crawler->filter('form')->first()->form();
 
-    //     // Пароли не совпали
-    //     $form['register_form[email]'] = $email;
-    //     $form['register_form[password][first]'] = $password;
-    //     $form['register_form[password][second]'] = $password . '1';
-    //     $crawler = $client->submit($form);
-    //     $this->assertEquals('Пароли должны совпадать', $crawler->filter('.invalid-feedback')->text());
-    // }
-    // public function testNoPasswordRegister(): void
-    // {
-    //     $client = static::getClient();
+        $email = 'test@example.com';
 
-    //     $this->mockBillingClient($client);
+        // Нет пароля
+        $form['register_form[email]'] = $email;
+        $crawler = $client->submit($form);
+        $this->assertEquals('Пожалуйста, придумайте пароль', $crawler->filter('.invalid-feedback')->text());
+    }
+    public function testEmailNotUniqueRegister(): void
+    {
+        $mock= new BillingMock();
+        $client = static::getClient();
+        $client->followRedirects();
+        $client=$mock->mockBillingClient($client);
 
-    //     $client->request('GET', '/');
-    //     $crawler = $client->clickLink('Регистрация');
-    //     $form = $crawler->filter('form')->first()->form();
+        $client->request('GET', '/');
+        $crawler = $client->clickLink('Регистрация');
+        $form = $crawler->filter('form')->first()->form();
 
-    //     $email = 'test@example.com';
+        $password = 'test_password';
 
-    //     // Нет пароля
-    //     $form['register_form[email]'] = $email;
-    //     $crawler = $client->submit($form);
-    //     $this->assertEquals('Пожалуйста, придумайте пароль', $crawler->filter('.invalid-feedback')->text());
-    // }
-    // public function testEmailNotUniqueRegister(): void
-    // {
-    //     $client = static::getClient();
+        // Такой логин уже существует
+        $form['register_form[email]'] = $this->fixture_user_email;
+        $form['register_form[password][first]'] = $password;
+        $form['register_form[password][second]'] = $password;
+        $crawler = $client->submit($form);
+        $this->assertEquals('Email уже существует', $crawler->filter('.alert')->text());
+    }
 
-    //     $this->mockBillingClient($client);
+    protected function authorize(AbstractBrowser $client, string $login, string $password): ?Crawler
+    {
+        $crawler = $client->clickLink('Вход');
 
-    //     $client->request('GET', '/');
-    //     $crawler = $client->clickLink('Регистрация');
-    //     $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form')->first()->form();
+        $form['email'] = $login;
+        $form['password'] = $password;
 
-    //     $password = 'test_password';
+        $crawler = $client->submit($form);
+        return $crawler;
+    }
 
-    //     // Такой логин уже существует
-    //     $form['register_form[email]'] = $this->fixture_user_email;
-    //     $form['register_form[password][first]'] = $password;
-    //     $form['register_form[password][second]'] = $password;
-    //     $crawler = $client->submit($form);
-    //     $this->assertEquals('Email уже существует', $crawler->filter('.alert')->text());
-    // }
+    protected function getFixtures(): array
+    {
+        return [AppFixtures::class];
+    }
 }

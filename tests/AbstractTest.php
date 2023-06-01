@@ -16,15 +16,6 @@ use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 
 abstract class AbstractTest extends WebTestCase
 {
-    public const TEST_ADD = 'Добавить';
-    public const TEST_UPDATE = 'Обновить';
-    public const TEST_SAVE = 'Сохранить';
-    public const TEST_EDIT = 'Редактировать';
-    public const TEST_REGISTER = 'Зарегистрироваться';
-    public const TEST_AUTH = 'Войти';
-    public const TEST_ENTER = 'Вход';
-    public const TEST_EXIT = 'Выход';
-
     /** @var LoremIpsum */
     private static $loremIpsum;
 

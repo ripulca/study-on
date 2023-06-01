@@ -82,8 +82,8 @@ class SecurityController extends AbstractController
                 ]);
             }
             $user->setApiToken($token['token'])
-                ->setRefreshToken('refresh_token');
-
+                ->setRefreshToken($token['refresh_token']);
+                
             return $userAuthenticator->authenticateUser(
                 $user,
                 $billingAuthenticator,

@@ -11,6 +11,7 @@
 			<tr>
 				<th>Название</th>
 				<th>Описание</th>
+				<th>Цена</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -20,6 +21,9 @@
 						<a class="course-show" href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.name }}</a>
 					</td>
 					<td>{{ course.description }}</td>
+					{% if course.price_msg is defined %}
+						<td>{{ course.price_msg }}</td>
+					{% endif %}
 				</tr>
 			{% else %}
 				<tr>

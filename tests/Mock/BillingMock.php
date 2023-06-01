@@ -4,15 +4,14 @@ namespace App\Tests\Mock;
 
 use App\DTO\UserDTO;
 use App\Security\User;
-use App\Tests\AbstractTest;
 use App\Service\BillingClient;
-use Symfony\Component\DomCrawler\Crawler;
+use App\Tests\AbstractTest;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
-class BillingMock extends AbstractTest
+class BillingMock extends WebTestCase
 {
     public const TEST_ADD = 'Добавить';
     public const TEST_UPDATE = 'Обновить';
@@ -21,18 +20,26 @@ class BillingMock extends AbstractTest
     public const TEST_REGISTER = 'Зарегистрироваться';
     public const TEST_AUTH = 'Войти';
     public const TEST_ENTER = 'Вход';
-    private static array $user = [
+    public const TEST_EXIT = 'Выход';
+    public static array $user = [
         'username' => 'user@studyon.com',
         'password' => 'password',
         'roles' => ['ROLE_USER'],
         'balance' => 100.0,
     ];
 
-    private static array $admin = [
-        'username' => 'user_admin@studyon.com',
+    public static array $admin = [
+        'username' => 'admin@studyon.com',
         'password' => 'password',
         'roles' => ['ROLE_USER', 'ROLE_SUPER_ADMIN'],
         'balance' => 500.0,
+    ];
+
+    private static array $new_user = [
+        'username' => 'test@example.com',
+        'password' => 'test_password',
+        'roles' => ['ROLE_USER'],
+        'balance' => 0.0,
     ];
 
     public function mockBillingClient(KernelBrowser $client)
@@ -41,9 +48,10 @@ class BillingMock extends AbstractTest
 
         self::$user['token']=$this->generateToken(self::$user['roles'], self::$user['username']);
         self::$admin['token']=$this->generateToken(self::$admin['roles'], self::$admin['username']);
-        $new_token=$this->generateToken(self::$user['roles'], 'test@example.com');
-        self::$user['refresh_token']='user_refresh_token';
-        self::$admin['refresh_token']='admin_refresh_token';
+        self::$new_user['token']=$this->generateToken(self::$user['roles'], 'test@example.com');
+        self::$new_user['refresh_token']=$this->generateRefreshToken(self::$user['roles'], 'test@example.com');
+        self::$user['refresh_token']=$this->generateRefreshToken(self::$user['roles'], self::$user['username']);
+        self::$admin['refresh_token']=$this->generateRefreshToken(self::$admin['roles'], self::$admin['username']);
 
         $billingClientMock = $this->getMockBuilder(BillingClient::class)
             ->disableOriginalConstructor()
@@ -74,12 +82,12 @@ class BillingMock extends AbstractTest
             });
 
         $billingClientMock->method('register')
-            ->willReturnCallback(static function (array $credentials) use ($new_token) {
+            ->willReturnCallback(static function (array $credentials) {
                 $email = $credentials['username'];
                 if (self::$user['username'] == $email || self::$admin['username'] == $email) {
                     throw new CustomUserMessageAuthenticationException('Email уже существует');
                 }
-                $tokens = ['token' => $new_token, 'refresh_token' => 'new_refresh_token', 'roles'=>['ROLE_USER']];
+                $tokens = ['token' => self::$new_user['token'], 'refresh_token' => self::$new_user['refresh_token'], 'roles'=>['ROLE_USER']];
                 return $tokens;
             });
 
@@ -103,11 +111,14 @@ class BillingMock extends AbstractTest
                 if (self::$admin['username'] == $email) {
                     return new UserDTO($email, $roles, self::$admin['balance']);
                 }
+                if (self::$new_user['username'] == $email) {
+                    return new UserDTO($email, $roles, self::$new_user['balance']);
+                }
                 throw new CustomUserMessageAccountStatusException('Некорректный JWT токен');
             });
 
-        static::getContainer()->set(BillingClient::class, $billingClientMock);
-        return null;
+        AbstractTest::getContainer()->set(BillingClient::class, $billingClientMock);
+        return $client;
     }
 
     private function generateToken($roles, $username): string
@@ -122,25 +133,15 @@ class BillingMock extends AbstractTest
         return 'header.' . $query . '.signature';
     }
 
-    protected function authorize(AbstractBrowser $client, string $login, string $password): ?Crawler
+    private function generateRefreshToken($roles, $username): string
     {
-        $crawler = $client->clickLink('Вход');
+        $data = [
+            'email' => $username,
+            'roles' => $roles,
+            'exp' => (new \DateTime('+ 1 month'))->getTimestamp(),
+        ];
+        $query = base64_encode(json_encode($data));
 
-        $form = $crawler->filter('form')->first()->form();
-        $form['email'] = $login;
-        $form['password'] = $password;
-
-        $crawler = $client->submit($form);
-        return $crawler;
-    }
-
-    public function beforeTesting($client)
-    {
-        $this->mockBillingClient($client);
-        $crawler = $client->request('GET', '/');
-        $this->authorize($client, self::$admin['username'], self::$admin['password']);
-        $this->assertResponseRedirect();
-        dd($crawler);
-        return $crawler;
+        return 'header.' . $query . '.signature';
     }
 }

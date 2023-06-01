@@ -4,11 +4,13 @@ namespace App\Tests;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
-use App\DataFixtures\AppFixtures;
 use App\Tests\Mock\BillingMock;
+use App\DataFixtures\AppFixtures;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 
-class CourseControllerTest extends BillingMock
+class CourseControllerTest extends AbstractTest
 {
     public function urlProviderIsSuccessful(): \Generator
     {
@@ -23,7 +25,7 @@ class CourseControllerTest extends BillingMock
     public function testPageIsSuccessful($url): void
     {
         $client = $this->getClient();
-        $this->beforeTesting($client);
+        $this->beforeTestingAdmin($client);
         $client->request('GET', $url);
         $this->assertResponseOk();
     }
@@ -41,14 +43,14 @@ class CourseControllerTest extends BillingMock
     public function testPageIsNotFound($url): void
     {
         $client = $this->getClient();
-        $this->beforeTesting($client);
-        $this->assertResponseRedirect();
+        $this->beforeTestingAdmin($client);
+        $this->assertResponseOk();
     }
 
     public function testGetActionsResponseOk(): void
     {
         $client = $this->getClient();
-        $this->beforeTesting($client);
+        $this->beforeTestingAdmin($client);
         $courses = $this->getEntityManager()->getRepository(Course::class)->findAll();
         foreach ($courses as $course) {
             // детальная страница курса
@@ -64,9 +66,8 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
-        // dd($crawler);
-
+        $crawler = $this->beforeTestingAdmin($client);
+        
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
@@ -100,7 +101,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -126,7 +127,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -152,7 +153,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -180,7 +181,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -206,7 +207,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -232,7 +233,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -258,7 +259,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу редактирования курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->filter('.course-show')->first()->link();
         $crawler = $client->click($link);
@@ -296,7 +297,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -342,7 +343,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -388,7 +389,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -433,7 +434,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -477,7 +478,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -522,7 +523,7 @@ class CourseControllerTest extends BillingMock
     {
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
@@ -567,7 +568,7 @@ class CourseControllerTest extends BillingMock
     {
         // страница со списком курсов
         $client = $this->getClient();
-        $crawler = $this->beforeTesting($client);
+        $crawler = $this->beforeTestingAdmin($client);
 
         // подсчитываем количество курсов
         $allCourses = $this->getEntityManager()->getRepository(Course::class)->findAll();
@@ -596,6 +597,40 @@ class CourseControllerTest extends BillingMock
         $this->assertSame($allCoursesCount - 1, $coursesCountAfterDelete);
         $this->assertSame($countThatShouldStayAfterDeleting, $allLessonsCountAfterDeleting);
         $this->assertCount($coursesCountAfterDelete, $crawler->filter('.card-body'));
+    }
+
+    protected function authorize(AbstractBrowser $client, string $login, string $password): ?Crawler
+    {
+        $crawler = $client->clickLink('Вход');
+
+        $form = $crawler->filter('form')->first()->form();
+        $form['email'] = $login;
+        $form['password'] = $password;
+
+        $crawler = $client->submit($form);
+        return $crawler;
+    }
+
+    public function beforeTestingAdmin($client)
+    {
+        $mock= new BillingMock();
+        $client=$mock->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $crawler = $this->authorize($client, BillingMock::$admin['username'], BillingMock::$admin['password']);
+        $this->assertResponseRedirect();
+        $crawler = $client->followRedirect();
+        return $crawler;
+    }
+
+    public function beforeTestingUser($client)
+    {
+        $mock= new BillingMock();
+        $client=$mock->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $crawler = $this->authorize($client, BillingMock::$user['username'], BillingMock::$user['password']);
+        $this->assertResponseRedirect();
+        $crawler = $client->followRedirect();
+        return $crawler;
     }
 
     protected function getFixtures(): array

@@ -30,16 +30,19 @@ security:
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
-    access_control:
-         - { path: ^/(courses|lessons)/, roles: ROLE_USER }
-         - { path: ^/login, roles: PUBLIC_ACCESS }
-         - { path: ^/register, roles: PUBLIC_ACCESS }
-         - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
-         - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
-         - { path: ^/(courses|lessons)/new, roles: ROLE_SUPER_ADMIN }
-         - { path: ^/(courses|lessons)/\d+/edit$, roles: ROLE_SUPER_ADMIN }
-         - { path: ^/(courses|lessons)/\d+$, methods: POST, roles: ROLE_SUPER_ADMIN }
-
+    # access_control:
+    #      - { path: ^/, roles: PUBLIC_ACCESS }
+        #  - { path: ^/login, roles: PUBLIC_ACCESS }
+        #  - { path: ^/register, roles: PUBLIC_ACCESS }
+        #  - { path: ^/courses/\d+$, roles: ROLE_USER }
+        #  - { path: ^/lessons/, roles: ROLE_USER }
+        #  - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
+        #  - { path: ^/logout, roles: IS_AUTHENTICATED_FULLY }
+        #  - { path: ^/(courses|lessons)/new, roles: ROLE_SUPER_ADMIN }
+        #  - { path: ^/(courses|lessons)/\d+/edit$, roles: ROLE_SUPER_ADMIN }
+        #  - { path: ^/(courses|lessons)/\d+$, methods: POST, roles: ROLE_SUPER_ADMIN }
+    # role_hierarchy:
+    #         ROLE_SUPER_ADMIN: ROLE_USER
 
 when@test:
     security:
