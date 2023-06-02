@@ -7,6 +7,7 @@ use JMS\Serializer\Serializer;
 use App\Exception\BillingException;
 use JMS\Serializer\SerializerInterface;
 use App\Exception\BillingUnavailableException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Intl\Exception\MissingResourceException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
@@ -33,12 +34,13 @@ class BillingClient
         $response = $this->jsonRequest(
             self::POST,
             self::AUTH_PATH,
+            [],
             $credentials,
         );
-        if ($response['code'] === 401) {
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
             throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль');
         }
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
@@ -49,13 +51,14 @@ class BillingClient
         $response = $this->jsonRequest(
             self::POST,
             self::REGISTER_PATH,
+            [],
             $credentials,
         );
         if (isset($response['code'])) {
-            if (409 === $response['code']) {
+            if (Response::HTTP_CONFLICT === $response['code']) {
                 throw new CustomUserMessageAuthenticationException($response['message']);
             }
-            if (400 === $response['code']) {
+            if (Response::HTTP_BAD_REQUEST === $response['code']) {
                 throw new BillingException(json_decode($response['errors']));
             }
         }
@@ -68,12 +71,13 @@ class BillingClient
             self::GET,
             self::GET_CURRENT_USER_PATH,
             [],
+            [],
             ['Authorization' => 'Bearer ' . $token]
         );
-        if ($response['code'] === 401) {
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
             throw new CustomUserMessageAuthenticationException('Некорректный JWT токен');
         }
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
 
@@ -86,104 +90,121 @@ class BillingClient
         $response = $this->jsonRequest(
             self::POST,
             self::REFRESH_TOKEN,
+            [],
             ['refresh_token' => $refreshToken],
         );
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
 
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function getCourse($code){
+    public function getCourse($code)
+    {
         $response = $this->jsonRequest(
             self::GET,
-            self::GET_COURSES.'/'.$code,
+            self::GET_COURSES . $code,
         );
-        if ($response['code'] === 404) {
+        if ($response['code'] === Response::HTTP_NOT_FOUND) {
             throw new ResourceNotFoundException('Курс не найден');
         }
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
 
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function getCourses(){
+    public function getCourses()
+    {
         $response = $this->jsonRequest(
             self::GET,
             self::GET_COURSES,
         );
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
-        $courses=json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
+        $courses = json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
         return $courses;
     }
 
-    public function payForCourse($token, $code){
+    public function payForCourse($token, $code)
+    {
         $response = $this->jsonRequest(
-            self::GET,
-            self::GET_COURSES.'/'.$code.'/pay',
+            self::POST,
+            self::GET_COURSES . $code . '/pay',
+            [],
             [],
             ['Authorization' => 'Bearer ' . $token]
         );
-        if ($response['code'] === 401) {
-            throw new CustomUserMessageAuthenticationException('Некорректный JWT токен');
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
+            throw new CustomUserMessageAuthenticationException($response['errors']);
         }
-        if ($response['code'] === 404) {
-            throw new ResourceNotFoundException('Курс не найден');
+        if ($response['code'] === Response::HTTP_NOT_FOUND) {
+            throw new ResourceNotFoundException($response['errors']);
         }
-        if ($response['code'] === 406) {
-            throw new MissingResourceException('Деняк мало');
+        if ($response['code'] === Response::HTTP_NOT_ACCEPTABLE) {
+            throw new MissingResourceException($response['errors']);
         }
-        if ($response['code'] >= 400) {
+        if ($response['code'] === Response::HTTP_CONFLICT) {
+            throw new \LogicException($response['errors']);
+        }
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
 
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function getTransactions($token, $type=null, $course_code=null, $skip_expired=false){
+    public function getTransactions($token, $type = null, $course_code = null, $skip_expired = false)
+    {
         $response = $this->jsonRequest(
             self::GET,
             self::GET_TRANSACTIONS,
             [
-                'type'=>$type,
-                'course_code'=>$course_code,
-                'skip_expired'=>$skip_expired
+                'type' => $type,
+                'course_code' => $course_code,
+                'skip_expired' => $skip_expired
             ],
+            [],
             ['Authorization' => 'Bearer ' . $token]
         );
-        if ($response['code'] === 401) {
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
             throw new CustomUserMessageAuthenticationException('Некорректный JWT токен');
         }
-        if ($response['code'] >= 400) {
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
         }
-        // dd($response);
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function jsonRequest($method, string $path, $body=[], $headers = [])
+    public function jsonRequest($method, string $path, $params = [], $body = [], $headers = [])
     {
         $headers['Accept'] = 'application/json';
         $headers['Content-Type'] = 'application/json';
-        // dd($body);
-        return $this->request($method, $path, json_encode($body, JSON_THROW_ON_ERROR), $headers);
+        return $this->request($method, $path, $params, json_encode($body, JSON_THROW_ON_ERROR), $headers);
     }
 
-    public function request($method, string $path, $body=[], $headers = [])
+    public function request($method, string $path, $params = [], $body = [], $headers = [])
     {
-        $route = $_ENV['BILLING_URL'] . $path;
-        $query = curl_init($route);
         $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => $method,
         ];
+        if (count($params) > 0) {
+            $path .= '?';
 
-        if ($method === self::POST) {
+            $newParameters = [];
+            foreach ($params as $name => $value) {
+                $newParameters[] = $name . '=' . $value;
+            }
+            $path .= implode('&', $newParameters);
+        }
+        $route = $_ENV['BILLING_URL'] . $path;
+        $query = curl_init($route);
+
+        if ($method === self::POST && !empty($body)) {
             $options[CURLOPT_POSTFIELDS] = $body;
         }
 

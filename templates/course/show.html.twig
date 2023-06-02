@@ -9,12 +9,40 @@
 	{% if course.description %}
 		<h3 class="card-text">{{ course.description }}</h3>
 	{% endif %}
+	{% if not is_granted('ROLE_USER') %}
+		<h3>
+			Войдите, чтобы иметь доступ к покупке курсов
+		</h3>
+	{% elseif not course.isPaid %}
+		{% if billingUser.balance > course.price %}
+			<div {{ stimulus_controller('modal-form') }}>
+				<button type="button" class="btn btn-primary" data-action="modal-form#openModal">
+					{% if course.type =='buy' %}
+						Купить
+					{% elseif course.type =='rent' %}
+						Арендовать
+					{% endif %}
+				</button>
+				{{ include('course/_modal.html.twig') }}
+			</div>
+		{% else %}
+			<h3>Недостаточно средств для оплаты</h3>
+		{% endif %}
+	{% elseif status is not null %}
+		<div {{ stimulus_controller('modal-form', { 'isShown': 'true' } ) }}>
+			{{ include('course/_modal.html.twig') }}
+		</div>
+	{% endif %}
 	<ol class="list-group list-group-numbered">
 		{% for lesson in course.lessons|sort((a, b) => a.serialNumber <=> b.serialNumber) %}
 			<li class="list-group-item">
-				<a class='lesson' href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+				{% if (is_granted("ROLE_USER") and course.isPaid) or is_granted("ROLE_SUPER_ADMIN") %}
+					<a class='lesson' href="{{ path('app_lesson_show', {'id': lesson.id}) }}">
+						<div>{{ lesson.name }}</div>
+					</a>
+				{% else %}
 					<div>{{ lesson.name }}</div>
-				</a>
+				{% endif %}
 			</li>
 		{% else %}
 			<div>
