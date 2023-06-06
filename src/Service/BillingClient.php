@@ -129,6 +129,17 @@ class BillingClient
         return $courses;
     }
 
+    public function newCourse($token, $params){
+        $response = $this->jsonRequest(
+            self::GET,
+            self::GET_COURSES.'new',
+            $params,
+            [],
+            ['Authorization' => 'Bearer ' . $token]
+        );
+        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
+    }
+
     public function payForCourse($token, $code)
     {
         $response = $this->jsonRequest(
@@ -157,14 +168,14 @@ class BillingClient
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function getTransactions($token, $type = null, $course_code = null, $skip_expired = false)
+    public function getTransactions($token, $type = null, $code = null, $skip_expired = false)
     {
         $response = $this->jsonRequest(
             self::GET,
             self::GET_TRANSACTIONS,
             [
                 'type' => $type,
-                'course_code' => $course_code,
+                'code' => $code,
                 'skip_expired' => $skip_expired
             ],
             [],

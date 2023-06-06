@@ -11,9 +11,9 @@ class User implements UserInterface
 
     private $roles = [];
 
-    private string $apiToken;
+    private ?string $apiToken = null;
 
-    private string $refreshToken;
+    private ?string $refreshToken = null;
 
     public static function fromDto(UserDTO $userDto): User
     {
