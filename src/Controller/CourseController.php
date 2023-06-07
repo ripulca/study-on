@@ -3,20 +3,23 @@
 namespace App\Controller;
 
 use LogicException;
+use App\DTO\CourseDTO;
 use App\Entity\Course;
 use App\Form\CourseType;
 use App\Enum\PaymentStatus;
 use App\Service\ArrayService;
-use MissingResourceException;
 use App\Service\BillingClient;
 use App\Repository\CourseRepository;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Intl\Exception\MissingResourceException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 #[Route('/courses')]
 class CourseController extends AbstractController
@@ -37,14 +40,14 @@ class CourseController extends AbstractController
         $billingCourses = ArrayService::arrayByKey($this->billingClient->getCourses(), 'code');
         foreach ($courses as $code => $course) {
             if (isset($billingCourses[$code])) {
-                if ($billingCourses[$code]['type'] === 'rent') {
-                    $courses[$code]['type'] = 'rent';
+                if ($billingCourses[$code]['type'] === PaymentStatus::RENT_NAME) {
+                    $courses[$code]['type'] = PaymentStatus::RENT_NAME;
                     $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . '₽ в неделю';
-                } elseif ($billingCourses[$code]['type'] === 'buy') {
-                    $courses[$code]['type'] = 'buy';
+                } elseif ($billingCourses[$code]['type'] === PaymentStatus::BUY_NAME) {
+                    $courses[$code]['type'] = PaymentStatus::BUY_NAME;
                     $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . '₽';
-                } elseif ($billingCourses[$code]['type'] === 'free') {
-                    $courses[$code]['type'] = 'free';
+                } elseif ($billingCourses[$code]['type'] === PaymentStatus::FREE_NAME) {
+                    $courses[$code]['type'] = PaymentStatus::FREE_NAME;
                     $courses[$code]['price_msg'] = 'Бесплатный';
                 }
             }
@@ -54,10 +57,10 @@ class CourseController extends AbstractController
             $transactions = ArrayService::arrayByKey($this->billingClient->getTransactions($user->getApiToken(), 'payment', null, true), 'code');
             foreach ($courses as $code => $course) {
                 if (isset($transactions[$code])) {
-                    if ($course['type'] === 'rent') {
+                    if ($course['type'] === PaymentStatus::RENT_NAME) {
                         $expiresAt = $transactions[$code]['expires'];
                         $courses[$code]['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($expiresAt['date']));
-                    } elseif ($course['type'] === 'buy') {
+                    } elseif ($course['type'] === PaymentStatus::BUY_NAME) {
                         $courses[$code]['price_msg'] = 'Куплено';
                     }
                 }
@@ -70,14 +73,34 @@ class CourseController extends AbstractController
 
     #[Route('/new', name: 'app_course_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_SUPER_ADMIN')]
-    public function new(Request $request, CourseRepository $courseRepository): Response
+    public function new(Request $request, CourseRepository $courseRepository, SerializerInterface $serializer, ): Response
     {
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $courseRepository->save($course, true);
+            $name = $form->get('name')->getData();
+            $type = $form->get('type')->getData();
+            $price = $form->get('price')->getData();
+            $code = $form->get('code')->getData();
+            if ($courseRepository->count(['code' => $code]) > 0) {
+                throw new LogicException('Курс с таким кодом уже существует');
+            }
+            if($type==0){
+                $price=0;
+            }
+            else{
+                if($price==0){
+                    throw new ResourceNotFoundException('Курс платный, укажите цену');
+                }
+            }
+            $user = $this->security->getUser();
+            $courseDTO = new CourseDTO($name, $code, $type, $price);
+            $response = $this->billingClient->newCourse($user->getApiToken(), $courseDTO);
+            if (isset($response['success'])) {
+                $courseRepository->save($course, true);
+            }
 
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -105,9 +128,11 @@ class CourseController extends AbstractController
             'description' => $course->getDescription(),
             'lessons' => $course->getLessons(),
             'type' => $billingCourse['type'],
-            'price' => $billingCourse['price'],
             'isPaid' => false,
         ];
+        if(isset($billingCourse['price'])){
+            $course['price'] = $billingCourse['price'];
+        }
         if ($billingCourse['type'] === 'rent') {
             $course['price_msg'] = $billingCourse['price'] . '₽ в неделю';
         } elseif ($billingCourse['type'] === 'buy') {
@@ -158,11 +183,24 @@ class CourseController extends AbstractController
     #[IsGranted('ROLE_SUPER_ADMIN')]
     public function edit(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
+        $oldCode = $course->getCode();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $courseRepository->save($course, true);
+            $name = $form->get('name')->getData();
+            $type = $form->get('type')->getData();
+            $price = $form->get('price')->getData();
+            $code = $form->get('code')->getData();
+            if ($oldCode!=$code && $courseRepository->count(['code' => $code]) > 0) {
+                throw new LogicException('Курс с таким кодом уже существует');
+            }
+            $user = $this->security->getUser();
+            $courseDTO = new CourseDTO($name, $code, $type, $price);
+            $response = $this->billingClient->editCourse($user->getApiToken(), $oldCode, $courseDTO);
+            if (isset($response['success'])) {
+                $courseRepository->save($course, true);
+            }
 
             return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }

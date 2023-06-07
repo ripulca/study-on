@@ -22,7 +22,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
     {
         $this->billingClient = $billingClient;
     }
-    
+
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me.
@@ -80,11 +80,11 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         if ($tokenExpiredTime <= new DateTime()) {
             try {
                 $tokens = $this->billingClient->refreshToken($user->getRefreshToken());
-            } catch (BillingUnavailableException|\JsonException $e) {
+                $user->setApiToken($tokens['token'])
+                    ->setRefreshToken($tokens['refresh_token']);
+            } catch (BillingUnavailableException | \JsonException $e) {
                 throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
             }
-            $user->setApiToken($tokens['token'])
-                ->setRefreshToken($tokens['refresh_token']);
         }
         return $this->loadUserByIdentifier($user->getApiToken());
     }

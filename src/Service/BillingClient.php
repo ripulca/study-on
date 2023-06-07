@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\DTO\UserDTO;
+use App\DTO\CourseDTO;
 use JMS\Serializer\Serializer;
 use App\Exception\BillingException;
 use JMS\Serializer\SerializerInterface;
@@ -38,7 +39,7 @@ class BillingClient
             $credentials,
         );
         if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
-            throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль');
+            throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль', $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -56,10 +57,13 @@ class BillingClient
         );
         if (isset($response['code'])) {
             if (Response::HTTP_CONFLICT === $response['code']) {
-                throw new CustomUserMessageAuthenticationException($response['message']);
+                throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
             }
             if (Response::HTTP_BAD_REQUEST === $response['code']) {
-                throw new BillingException(json_decode($response['errors']));
+                throw new BillingException(json_decode($response['body'], true)['errors'], $response['code']);
+            }
+            if ($response['code'] > Response::HTTP_BAD_REQUEST) {
+                throw new BillingUnavailableException();
             }
         }
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
@@ -75,7 +79,7 @@ class BillingClient
             ['Authorization' => 'Bearer ' . $token]
         );
         if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
-            throw new CustomUserMessageAuthenticationException('Некорректный JWT токен');
+            throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -107,7 +111,7 @@ class BillingClient
             self::GET_COURSES . $code,
         );
         if ($response['code'] === Response::HTTP_NOT_FOUND) {
-            throw new ResourceNotFoundException('Курс не найден');
+            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -129,14 +133,51 @@ class BillingClient
         return $courses;
     }
 
-    public function newCourse($token, $params){
+    public function newCourse($token, $course){
         $response = $this->jsonRequest(
-            self::GET,
+            self::POST,
             self::GET_COURSES.'new',
-            $params,
             [],
+            $course,
             ['Authorization' => 'Bearer ' . $token]
         );
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
+            throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] === Response::HTTP_FORBIDDEN) {
+            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] === Response::HTTP_CONFLICT) {
+            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
+            throw new BillingUnavailableException();
+        }
+
+        return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    public function editCourse($token, $code, $course){
+        $response = $this->jsonRequest(
+            self::POST,
+            self::GET_COURSES.$code.'/edit',
+            [],
+            $course,
+            ['Authorization' => 'Bearer ' . $token]
+        );
+        if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
+            throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] === Response::HTTP_FORBIDDEN) {
+            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] === Response::HTTP_CONFLICT) {
+            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
+        }
+        if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
+            throw new BillingUnavailableException();
+        }
+
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
@@ -150,16 +191,16 @@ class BillingClient
             ['Authorization' => 'Bearer ' . $token]
         );
         if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
-            throw new CustomUserMessageAuthenticationException($response['errors']);
+            throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_NOT_FOUND) {
-            throw new ResourceNotFoundException($response['errors']);
+            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_NOT_ACCEPTABLE) {
-            throw new MissingResourceException($response['errors']);
+            throw new MissingResourceException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_CONFLICT) {
-            throw new \LogicException($response['errors']);
+            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -182,7 +223,7 @@ class BillingClient
             ['Authorization' => 'Bearer ' . $token]
         );
         if ($response['code'] === Response::HTTP_UNAUTHORIZED) {
-            throw new CustomUserMessageAuthenticationException('Некорректный JWT токен');
+            throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -194,10 +235,10 @@ class BillingClient
     {
         $headers['Accept'] = 'application/json';
         $headers['Content-Type'] = 'application/json';
-        return $this->request($method, $path, $params, json_encode($body, JSON_THROW_ON_ERROR), $headers);
+        return $this->request($method, $path, $params, $this->serializer->serialize($body, 'json'), $headers);
     }
 
-    public function request($method, string $path, $params = [], $body = [], $headers = [])
+    public function request($method, string $path, $params = [], $body=[], $headers = [])
     {
         $options = [
             CURLOPT_RETURNTRANSFER => true,

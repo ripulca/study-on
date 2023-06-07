@@ -16,7 +16,6 @@ class CourseControllerTest extends AbstractTest
     {
         yield ['/'];
         yield ['/courses/'];
-        yield ['/courses/new'];
     }
 
     /**
@@ -44,7 +43,8 @@ class CourseControllerTest extends AbstractTest
     {
         $client = $this->getClient();
         $this->beforeTestingAdmin($client);
-        $this->assertResponseOk();
+        $client->request('GET', $url);
+        $this->assertResponseCode(404);
     }
 
     public function testGetActionsResponseOk(): void
@@ -67,7 +67,6 @@ class CourseControllerTest extends AbstractTest
         // от списка курсов переходим на страницу создания курса
         $client = $this->getClient();
         $crawler = $this->beforeTestingAdmin($client);
-        
         $link = $crawler->selectLink(BillingMock::TEST_ADD)->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
@@ -281,7 +280,7 @@ class CourseControllerTest extends AbstractTest
         $form['course[code]'] = 'successEdit';
         $form['course[name]'] = 'Course name for test';
         $form['course[description]'] = 'Description course for test';
-        $client->submit($form);
+        $crawler=$client->submit($form);
 
         // проверяем редирект
         $crawler = $client->followRedirect();
