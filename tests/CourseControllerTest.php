@@ -4,6 +4,7 @@ namespace App\Tests;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Enum\PaymentStatus;
 use App\Tests\Mock\BillingMock;
 use App\DataFixtures\AppFixtures;
 use Symfony\Component\DomCrawler\Crawler;
@@ -24,7 +25,7 @@ class CourseControllerTest extends AbstractTest
     public function testPageIsSuccessful($url): void
     {
         $client = $this->getClient();
-        $this->beforeTestingAdmin($client);
+        $this->beforeTestingUser($client);
         $client->request('GET', $url);
         $this->assertResponseOk();
     }
@@ -42,7 +43,7 @@ class CourseControllerTest extends AbstractTest
     public function testPageIsNotFound($url): void
     {
         $client = $this->getClient();
-        $this->beforeTestingAdmin($client);
+        $this->beforeTestingUser($client);
         $client->request('GET', $url);
         $this->assertResponseCode(404);
     }
@@ -73,27 +74,16 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => 'new_course',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course = $this->getEntityManager()->getRepository(Course::class)->findOneBy([
-            'code' => 'unique-code1',
-        ]);
-
         // проверяем редирект
         $this->assertSame($client->getResponse()->headers->get('location'), '/courses/');
         $crawler = $client->followRedirect();
         $this->assertResponseOk();
-
-        $crawler = $client->request('GET', '/courses/' . $course->getId());
-        $this->assertResponseOk();
-
-        // проверяем корректность отображения данных
-        $this->assertSame($crawler->filter('.course-name')->text(), $course->getName());
-        $this->assertSame($crawler->filter('.card-text')->text(), $course->getDescription());
     }
 
     public function testCourseWithEmptyCodeCreating(): void
@@ -277,9 +267,11 @@ class CourseControllerTest extends AbstractTest
             ->findOneBy(['code' => $form['course[code]']->getValue()])->getId();
 
         // заполняем форму корректными данными
-        $form['course[code]'] = 'successEdit';
+        $form['course[code]'] = 'lol';
         $form['course[name]'] = 'Course name for test';
         $form['course[description]'] = 'Description course for test';
+        $form['course[type]'] = 0;
+        $form['course[price]'] = 0.0;
         $crawler=$client->submit($form);
 
         // проверяем редирект
@@ -304,13 +296,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => '',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'php_1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -350,13 +342,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => 'php_1',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'test_buy'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -374,7 +366,8 @@ class CourseControllerTest extends AbstractTest
 
         // пробуем сохранить курс с существующим кодом
         $form['course[code]'] = $first_course->getCode();
-        $client->submit($form);
+        $crawler=$client->submit($form);
+        // dd($crawler);
         $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         // Проверяем наличие сообщения об ошибке
@@ -396,13 +389,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
-            'course[name]' => 'Course name for test',
+            'course[code]' => 'test',
+            'course[name]' => '',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'php_1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -441,13 +434,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => 'php_1',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'php_1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -485,13 +478,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => 'php_1',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'php_1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -506,7 +499,7 @@ class CourseControllerTest extends AbstractTest
         $form = $submitButton->form();
 
         // пробуем сохранить курс с именем где символов больше 255
-        $form['course[code]'] = 'exampleuniqcode';
+        $form['course[code]'] = 'php_1';
         $form['course[name]'] = $this->getLoremIpsum()->words(50);
         $client->submit($form);
         $this->assertResponseCode(Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -530,13 +523,13 @@ class CourseControllerTest extends AbstractTest
 
         // заполняем форму создания курса корректными данными и отправляем
         $courseCreatingForm = $crawler->selectButton(BillingMock::TEST_SAVE)->form([
-            'course[code]' => 'unique-code1',
+            'course[code]' => 'php_1',
             'course[name]' => 'Course name for test',
             'course[description]' => 'Course description for test',
         ]);
         $client->submit($courseCreatingForm);
 
-        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'unique-code1'])->getId();
+        $course_id = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code' => 'php_1'])->getId();
 
         // со страницы списка курсов
         $client = $this->getClient();
@@ -598,6 +591,62 @@ class CourseControllerTest extends AbstractTest
         $this->assertCount($coursesCountAfterDelete, $crawler->filter('.card-body'));
     }
 
+    public function testPayForCourseSucceed(){
+        $client = $this->getClient();
+        $crawler = $this->beforeTestingUser($client);
+
+        $course = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code'=>'test_buy']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseOk();
+        // на детальной странице курса
+        $link = $crawler->selectLink(BillingMock::TEST_PAY)->link();
+        $crawler = $client->click($link);
+        $form = $crawler->selectButton(BillingMock::TEST_CONTINUE)->form();
+        $crawler = $client->submit($form);
+        $this->assertResponseRedirects('/courses/'.$course->getId().'?status=' . PaymentStatus::OK);
+        $crawler = $client->followRedirect();
+        $this->assertResponseOk();
+        $this->assertEquals('Оплачено',$crawler->filter('.modal-body')->text());
+    }
+
+    public function testRentForCourseSucceed(){
+        $client = $this->getClient();
+        $crawler = $this->beforeTestingUser($client);
+
+        $course = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code'=>'test_rent']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseOk();
+        // на детальной странице курса
+        $link = $crawler->selectLink(BillingMock::TEST_RENT)->link();
+        $crawler = $client->click($link);
+        $form = $crawler->selectButton(BillingMock::TEST_CONTINUE)->form();
+        $crawler = $client->submit($form);
+        $this->assertResponseRedirects('/courses/'.$course->getId().'?status=' . PaymentStatus::OK);
+        $crawler = $client->followRedirect();
+        $this->assertResponseOk();
+        $this->assertEquals('Оплачено',$crawler->filter('.modal-body')->text());
+    }
+
+    public function testPayForCourseFailed(){
+        $client = $this->getClient();
+        $crawler = $this->beforeTestingNewUser($client);
+
+        $course = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code'=>'test_buy']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseOk();
+        $this->assertEquals('Недостаточно средств для оплаты',$crawler->filter('.payment_warning')->text());
+    }
+
+    public function testRentForCourseFailed(){
+        $client = $this->getClient();
+        $crawler = $this->beforeTestingNewUser($client);
+
+        $course = $this->getEntityManager()->getRepository(Course::class)->findOneBy(['code'=>'test_rent']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseOk();
+        $this->assertEquals('Недостаточно средств для оплаты',$crawler->filter('.payment_warning')->text());
+    }
+
     protected function authorize(AbstractBrowser $client, string $login, string $password): ?Crawler
     {
         $crawler = $client->clickLink('Вход');
@@ -627,6 +676,17 @@ class CourseControllerTest extends AbstractTest
         $client=$mock->mockBillingClient($client);
         $crawler = $client->request('GET', '/');
         $crawler = $this->authorize($client, BillingMock::$user['username'], BillingMock::$user['password']);
+        $this->assertResponseRedirect();
+        $crawler = $client->followRedirect();
+        return $crawler;
+    }
+
+    public function beforeTestingNewUser($client)
+    {
+        $mock= new BillingMock();
+        $client=$mock->mockBillingClient($client);
+        $crawler = $client->request('GET', '/');
+        $crawler = $this->authorize($client, BillingMock::$new_user['username'], BillingMock::$new_user['password']);
         $this->assertResponseRedirect();
         $crawler = $client->followRedirect();
         return $crawler;

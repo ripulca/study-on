@@ -4,10 +4,27 @@ namespace App\Enum;
 
 class PaymentStatus
 {
-    public const ALREADY_PAID = 'Уже приобретен';
-    public const NO_MONEY = 'Недостаточно средств';
-    public const OK = 'Оплачено';
-    public const FAIL = 'Не оплачено';
+    public const ALREADY_PAID = 0;
+    public const NO_MONEY = 2;
+    public const OK = 1;
+    public const FAIL = 3;
+    public const ALREADY_PAID_NAME = 'Уже приобретен';
+    public const NO_MONEY_NAME = 'Недостаточно средств';
+    public const OK_NAME = 'Оплачено';
+    public const FAIL_NAME = 'Не оплачено';
+    public const PAY_NAMES = [
+        self::ALREADY_PAID => self::ALREADY_PAID_NAME,
+        self::NO_MONEY => self::NO_MONEY_NAME,
+        self::OK => self::OK_NAME,
+        self::FAIL => self::FAIL_NAME,
+    ];
+
+    public const PAY_VALUES = [
+        self::FAIL_NAME => self::FAIL,
+        self::OK_NAME => self::OK,
+        self::NO_MONEY_NAME => self::NO_MONEY,
+        self::ALREADY_PAID_NAME => self::ALREADY_PAID,
+    ];
 
     public const FREE = 0;
     public const RENT = 1;

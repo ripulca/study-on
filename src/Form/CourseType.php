@@ -23,13 +23,17 @@ class CourseType extends AbstractType
     }
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $entity=$builder->getData();
-        $billingCourse = $this->billingClient->getCourse($entity->getCode());
-        if(!isset($billingCourse['price'])){
-            $billingCourse['price']=0;
+        $entity = $builder->getData();
+        if ($entity->getCode() != null) {
+            $billingCourse = $this->billingClient->getCourse($entity->getCode());
+        } else {
+            $billingCourse = [];
         }
-        if(!isset($billingCourse['type'])){
-            $billingCourse['type']='free';
+        if (!isset($billingCourse['price'])) {
+            $billingCourse['price'] = 0;
+        }
+        if (!isset($billingCourse['type'])) {
+            $billingCourse['type'] = 'free';
         }
         $builder
             ->add('code', TextType::class, [
@@ -47,23 +51,23 @@ class CourseType extends AbstractType
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Тип',
-                'choices'  => [
+                'choices' => [
                     'бесплатный' => 0,
                     'аренда' => 1,
                     'покупка' => 2,
                 ],
                 'required' => true,
-                'mapped'=>false,
-                'data'=>PaymentStatus::VALUES[$billingCourse['type']],
+                'mapped' => false,
+                'data' => PaymentStatus::VALUES[$billingCourse['type']],
             ])
             ->add('price', MoneyType::class, [
                 'label' => 'Цена',
-                'currency'=>'RUB',
-                'html5'=>true,
-                'mapped'=>false,
+                'currency' => 'RUB',
+                'html5' => true,
+                'mapped' => false,
                 'empty_data' => 0,
                 'attr' => ['min' => 0],
-                'data'=>$billingCourse['price'],
+                'data' => $billingCourse['price'],
             ])
         ;
     }

@@ -87,11 +87,10 @@ class CourseController extends AbstractController
             if ($courseRepository->count(['code' => $code]) > 0) {
                 throw new LogicException('Курс с таким кодом уже существует');
             }
-            if($type==0){
-                $price=0;
-            }
-            else{
-                if($price==0){
+            if ($type == 0) {
+                $price = 0;
+            } else {
+                if ($price == 0) {
                     throw new ResourceNotFoundException('Курс платный, укажите цену');
                 }
             }
@@ -130,7 +129,7 @@ class CourseController extends AbstractController
             'type' => $billingCourse['type'],
             'isPaid' => false,
         ];
-        if(isset($billingCourse['price'])){
+        if (isset($billingCourse['price'])) {
             $course['price'] = $billingCourse['price'];
         }
         if ($billingCourse['type'] === 'rent') {
@@ -149,7 +148,10 @@ class CourseController extends AbstractController
                 $course['price_msg'] = 'Куплено';
             }
         }
-        $status = $request->query->get('status');
+        $status=null;
+        if ($request->query->get('status') != null) {
+            $status = PaymentStatus::PAY_NAMES[$request->query->get('status')];
+        }
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'status' => $status,
@@ -192,7 +194,7 @@ class CourseController extends AbstractController
             $type = $form->get('type')->getData();
             $price = $form->get('price')->getData();
             $code = $form->get('code')->getData();
-            if ($oldCode!=$code && $courseRepository->count(['code' => $code]) > 0) {
+            if ($oldCode != $code && $courseRepository->count(['code' => $code]) > 0) {
                 throw new LogicException('Курс с таким кодом уже существует');
             }
             $user = $this->security->getUser();

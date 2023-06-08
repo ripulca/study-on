@@ -17,17 +17,17 @@
 		{% if course.price is defined %}
 			{% if billingUser.balance > course.price %}
 				<div {{ stimulus_controller('modal-form') }}>
-					<button type="button" class="btn btn-primary" data-action="modal-form#openModal">
+					<a class="btn btn-primary" data-action="modal-form#openModal">
 						{% if course.type =='buy' %}
 							Купить
 						{% elseif course.type =='rent' %}
 							Арендовать
 						{% endif %}
-					</button>
+					</a>
 					{{ include('course/_modal.html.twig') }}
 				</div>
 			{% else %}
-				<h3>Недостаточно средств для оплаты</h3>
+				<h3 class="payment_warning">Недостаточно средств для оплаты</h3>
 			{% endif %}
 		{% else %}
 			<h3>Бесплатный</h3>

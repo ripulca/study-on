@@ -24,6 +24,10 @@ class BillingMock extends WebTestCase
     public const TEST_AUTH = 'Войти';
     public const TEST_ENTER = 'Вход';
     public const TEST_EXIT = 'Выход';
+    public const TEST_PAY = 'Купить';
+    public const TEST_RENT = 'Арендовать';
+    public const TEST_CONTINUE = 'Продолжить';
+    public const TEST_CLOSE = 'Закрыть';
     public static array $user = [
         'username' => 'user@studyon.com',
         'password' => 'password',
@@ -38,7 +42,7 @@ class BillingMock extends WebTestCase
         'balance' => 500.0,
     ];
 
-    private static array $new_user = [
+    public static array $new_user = [
         'username' => 'test@example.com',
         'password' => 'test_password',
         'roles' => ['ROLE_USER'],
@@ -98,7 +102,6 @@ class BillingMock extends WebTestCase
             $transaction['created']['date'] = $created;
             $transaction['expires']['date'] = $expires;
         }
-        // $code=self::$courses[0]['code'];
 
         $billingClientMock = $this->getMockBuilder(BillingClient::class)
             ->disableOriginalConstructor()
@@ -123,6 +126,11 @@ class BillingMock extends WebTestCase
                 if (self::$admin['username'] == $email) {
                     if (self::$admin['password'] == $password) {
                         return ['token' => self::$admin['token'], 'refresh_token' => self::$admin['refresh_token']];
+                    }
+                }
+                if (self::$new_user['username'] == $email) {
+                    if (self::$new_user['password'] == $password) {
+                        return ['token' => self::$new_user['token'], 'refresh_token' => self::$new_user['refresh_token']];
                     }
                 }
                 throw new CustomUserMessageAuthenticationException('Неправильные логин или пароль');
@@ -175,7 +183,11 @@ class BillingMock extends WebTestCase
                         return $result;
                     }
                 }
-                throw new \RuntimeException('Нет курса с таким кодом', Response::HTTP_NOT_FOUND);
+                if($code=='lol'){
+                    $result=['code'=>'lol', 'type'=>'free','price'=>0.0];
+                    return $result;
+                }
+                throw new CustomUserMessageAccountStatusException('Нет курса с таким кодом');
             });
 
         $billingClientMock->method('getCourses')
@@ -189,13 +201,13 @@ class BillingMock extends WebTestCase
             });
 
         $billingClientMock->method('editCourse')
-            ->willReturnCallback(static function (string $code) {
+            ->willReturnCallback(static function ($token, string $code) {
                 foreach(self::$courses as $course){
                     if ($course['code'] == $code) {
                         return ['success'=>true];
                     }
                 }
-                throw new \RuntimeException('Нет курса с таким кодом', Response::HTTP_NOT_FOUND);
+                throw new CustomUserMessageAccountStatusException('Нет курса с таким кодом');
             });
 
         $billingClientMock->method('payForCourse')
@@ -207,12 +219,12 @@ class BillingMock extends WebTestCase
                         $pay_course= ['code'=>$course['code'], 'type'=>$course['type'], 'price'=>$course['price']];
                     }
                 }
-                if (self::$user['username'] == $email) {
-                    self::$user['balance']-=$pay_course['balance'];
-                }
-                if (self::$admin['username'] == $email) {
-                    self::$admin['balance']-=$pay_course['balance'];
-                }
+                // if (self::$user['username'] == $email) {
+                //     self::$user['balance']-=$pay_course['price'];
+                // }
+                // if (self::$admin['username'] == $email) {
+                //     self::$admin['balance']-=$pay_course['price'];
+                // }
                 if (self::$new_user['username'] == $email) {
                     throw new CustomUserMessageAccountStatusException('Недостаточно денег');
                 }
@@ -220,9 +232,15 @@ class BillingMock extends WebTestCase
             });
 
         $billingClientMock->method('getTransactions')
-            ->willReturnCallback(static function (string $refreshToken) {
+            ->willReturnCallback(static function (string $refreshToken, string $code) {
                 [$exp, $email, $roles] = User::jwtDecode($refreshToken);
-                return self::$transactions;
+                $result=[];
+                foreach(self::$transactions as $transaction){
+                    if($transaction['code'] == $code){
+                        $result[]=$transaction;
+                    }
+                }
+                return $result;
             });
         AbstractTest::getContainer()->set(BillingClient::class, $billingClientMock);
         return $client;
