@@ -3,7 +3,6 @@ declare(strict_types=1);
 namespace App\Tests\Mock;
 
 use App\DTO\UserDTO;
-use App\DTO\CourseDTO;
 use App\Security\User;
 use DateTimeInterface;
 use App\Tests\AbstractTest;
@@ -53,19 +52,23 @@ class BillingMock extends WebTestCase
         [
             'code' => 'php_1',
             'type' => 'free'
-        ], [
+        ],
+        [
             'code' => 'js_1',
             'type' => 'rent',
             'price' => 10
-        ], [
+        ],
+        [
             'code' => 'figma_1',
             'type' => 'buy',
             'price' => 20
-        ], [
+        ],
+        [
             'code' => 'test_buy',
             'type' => 'buy',
             'price' => 20
-        ], [
+        ],
+        [
             'code' => 'test_rent',
             'type' => 'rent',
             'price' => 20
@@ -78,7 +81,8 @@ class BillingMock extends WebTestCase
             "type" => "payment",
             "code" => "js_1",
             "amount" => 10
-        ], [
+        ],
+        [
             "id" => 3,
             "type" => "payment",
             "code" => "figma_1",
@@ -89,8 +93,8 @@ class BillingMock extends WebTestCase
     public function mockBillingClient(KernelBrowser $client)
     {
         $client->disableReboot();
-        $created=(new \DateTime())->format(DateTimeInterface::ATOM);
-        $expires=(new \DateTime())->sub(new \DateInterval('P7D'))->format(DateTimeInterface::ATOM);
+        $created = (new \DateTime())->format(DateTimeInterface::ATOM);
+        $expires = (new \DateTime())->sub(new \DateInterval('P7D'))->format(DateTimeInterface::ATOM);
 
         self::$user['token'] = $this->generateToken(self::$user['roles'], self::$user['username']);
         self::$admin['token'] = $this->generateToken(self::$admin['roles'], self::$admin['username']);
@@ -98,7 +102,7 @@ class BillingMock extends WebTestCase
         self::$new_user['refresh_token'] = $this->generateRefreshToken(self::$user['roles'], 'test@example.com');
         self::$user['refresh_token'] = $this->generateRefreshToken(self::$user['roles'], self::$user['username']);
         self::$admin['refresh_token'] = $this->generateRefreshToken(self::$admin['roles'], self::$admin['username']);
-        foreach(self::$transactions as &$transaction){
+        foreach (self::$transactions as &$transaction) {
             $transaction['created']['date'] = $created;
             $transaction['expires']['date'] = $expires;
         }
@@ -161,30 +165,30 @@ class BillingMock extends WebTestCase
             ->willReturnCallback(static function (string $refreshToken) {
                 [$exp, $email, $roles] = User::jwtDecode($refreshToken);
                 if (self::$user['username'] == $email) {
-                    return new UserDTO($email, $roles, self::$user['balance']);
+                    return UserDTO::getUserDTO($email, $roles, self::$user['balance']);
                 }
                 if (self::$admin['username'] == $email) {
-                    return new UserDTO($email, $roles, self::$admin['balance']);
+                    return UserDTO::getUserDTO($email, $roles, self::$admin['balance']);
                 }
                 if (self::$new_user['username'] == $email) {
-                    return new UserDTO($email, $roles, self::$new_user['balance']);
+                    return UserDTO::getUserDTO($email, $roles, self::$new_user['balance']);
                 }
                 throw new CustomUserMessageAccountStatusException('Некорректный JWT токен');
             });
 
         $billingClientMock->method('getCourse')
             ->willReturnCallback(static function (string $code) {
-                foreach(self::$courses as $course){
+                foreach (self::$courses as $course) {
                     if ($course['code'] == $code) {
-                        $result=['code'=>$course['code'], 'type'=>$course['type'],];
-                        if($course['type']!='free'){
-                            $result['price']=$course['price'];
+                        $result = ['code' => $course['code'], 'type' => $course['type'],];
+                        if ($course['type'] != 'free') {
+                            $result['price'] = $course['price'];
                         }
                         return $result;
                     }
                 }
-                if($code=='lol'){
-                    $result=['code'=>'lol', 'type'=>'free','price'=>0.0];
+                if ($code == 'lol') {
+                    $result = ['code' => 'lol', 'type' => 'free', 'price' => 0.0];
                     return $result;
                 }
                 throw new CustomUserMessageAccountStatusException('Нет курса с таким кодом');
@@ -197,14 +201,14 @@ class BillingMock extends WebTestCase
 
         $billingClientMock->method('newCourse')
             ->willReturnCallback(static function () {
-                return ['success'=>true];
+                return ['success' => true];
             });
 
         $billingClientMock->method('editCourse')
             ->willReturnCallback(static function ($token, string $code) {
-                foreach(self::$courses as $course){
+                foreach (self::$courses as $course) {
                     if ($course['code'] == $code) {
-                        return ['success'=>true];
+                        return ['success' => true];
                     }
                 }
                 throw new CustomUserMessageAccountStatusException('Нет курса с таким кодом');
@@ -213,10 +217,10 @@ class BillingMock extends WebTestCase
         $billingClientMock->method('payForCourse')
             ->willReturnCallback(static function (string $refreshToken, string $code) {
                 [$exp, $email, $roles] = User::jwtDecode($refreshToken);
-                $pay_course=[];
-                foreach(self::$courses as $course){
+                $pay_course = [];
+                foreach (self::$courses as $course) {
                     if ($course['code'] == $code) {
-                        $pay_course= ['code'=>$course['code'], 'type'=>$course['type'], 'price'=>$course['price']];
+                        $pay_course = ['code' => $course['code'], 'type' => $course['type'], 'price' => $course['price']];
                     }
                 }
                 // if (self::$user['username'] == $email) {
@@ -228,16 +232,16 @@ class BillingMock extends WebTestCase
                 if (self::$new_user['username'] == $email) {
                     throw new CustomUserMessageAccountStatusException('Недостаточно денег');
                 }
-                return ['success'=>true];
+                return ['success' => true];
             });
 
         $billingClientMock->method('getTransactions')
             ->willReturnCallback(static function (string $refreshToken, string $code) {
                 [$exp, $email, $roles] = User::jwtDecode($refreshToken);
-                $result=[];
-                foreach(self::$transactions as $transaction){
-                    if($transaction['code'] == $code){
-                        $result[]=$transaction;
+                $result = [];
+                foreach (self::$transactions as $transaction) {
+                    if ($transaction['code'] == $code) {
+                        $result[] = $transaction;
                     }
                 }
                 return $result;

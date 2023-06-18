@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\DTO\UserDTO;
-use App\DTO\CourseDTO;
 use JMS\Serializer\Serializer;
 use App\Exception\BillingException;
 use JMS\Serializer\SerializerInterface;
@@ -133,10 +132,11 @@ class BillingClient
         return $courses;
     }
 
-    public function newCourse($token, $course){
+    public function newCourse($token, $course)
+    {
         $response = $this->jsonRequest(
             self::POST,
-            self::GET_COURSES.'new',
+            self::GET_COURSES . 'new',
             [],
             $course,
             ['Authorization' => 'Bearer ' . $token]
@@ -157,10 +157,11 @@ class BillingClient
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function editCourse($token, $code, $course){
+    public function editCourse($token, $code, $course)
+    {
         $response = $this->jsonRequest(
             self::POST,
-            self::GET_COURSES.$code.'/edit',
+            self::GET_COURSES . $code . '/edit',
             [],
             $course,
             ['Authorization' => 'Bearer ' . $token]
@@ -238,21 +239,13 @@ class BillingClient
         return $this->request($method, $path, $params, $this->serializer->serialize($body, 'json'), $headers);
     }
 
-    public function request($method, string $path, $params = [], $body=[], $headers = [])
+    public function request($method, string $path, $params = [], $body = [], $headers = [])
     {
         $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => $method,
         ];
-        if (count($params) > 0) {
-            $path .= '?';
-
-            $newParameters = [];
-            foreach ($params as $name => $value) {
-                $newParameters[] = $name . '=' . $value;
-            }
-            $path .= implode('&', $newParameters);
-        }
+        $path .='?'. http_build_query($params);
         $route = $_ENV['BILLING_URL'] . $path;
         $query = curl_init($route);
 

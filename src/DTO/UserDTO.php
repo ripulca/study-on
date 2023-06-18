@@ -23,58 +23,44 @@ class UserDTO
      */
     private float $balance;
 
-    public function __construct(string $username, array $roles, float $balance)
+    public static function getUserDTO(string $username, array $roles, float $balance)
     {
-        $this->username = $username;
-        $this->roles = $roles;
-        $this->balance = $balance;
+        return (new self)
+            ->setUsername($username)
+            ->setRoles($roles)
+            ->setBalance($balance);
     }
 
-    /**
-     * @return string
-     */
     public function getUsername(): string
     {
         return $this->username;
     }
 
-    /**
-     * @param string $username
-     */
-    public function setUsername(string $username): void
+    public function setUsername(string $username)
     {
         $this->username = $username;
+        return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
-    /**
-     * @param array $roles
-     */
-    public function setRoles(array $roles): void
+    public function setRoles(array $roles)
     {
         $this->roles = $roles;
+        return $this;
     }
 
-    /**
-     * @return float
-     */
     public function getBalance(): float
     {
         return $this->balance;
     }
-
-    /**
-     * @param float $balance
-     */
-    public function setBalance(float $balance): void
+    
+    public function setBalance(float $balance)
     {
         $this->balance = $balance;
+        return $this;
     }
 }

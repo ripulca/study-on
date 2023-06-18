@@ -9,7 +9,7 @@ class BillingUnavailableException extends Exception
 {
     public function __construct($message = null, $code = 0, Throwable $previous = null)
     {
-        $message = $message ?? 'Сервис временно недоступен';
+        $message = $message ?? 'Сервис временно недоступен. Попробуйте авторизоваться позднее';
         parent::__construct($message, $code, $previous);
     }
 }

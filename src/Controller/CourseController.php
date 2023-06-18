@@ -36,8 +36,8 @@ class CourseController extends AbstractController
     #[Route('/', name: 'app_course_index', methods: ['GET'])]
     public function index(CourseRepository $courseRepository): Response
     {
-        $courses = ArrayService::arrayByKey($courseRepository->findAllArray(), 'code');
-        $billingCourses = ArrayService::arrayByKey($this->billingClient->getCourses(), 'code');
+        $courses = ArrayService::mapToKey($courseRepository->findAllArray(), 'code');
+        $billingCourses = ArrayService::mapToKey($this->billingClient->getCourses(), 'code');
         foreach ($courses as $code => $course) {
             if (isset($billingCourses[$code])) {
                 if ($billingCourses[$code]['type'] === PaymentStatus::RENT_NAME) {
@@ -54,12 +54,14 @@ class CourseController extends AbstractController
         }
         if ($this->isGranted('ROLE_USER')) {
             $user = $this->security->getUser();
-            $transactions = ArrayService::arrayByKey($this->billingClient->getTransactions($user->getApiToken(), 'payment', null, true), 'code');
+            $transactions = ArrayService::mapToKey($this->billingClient->getTransactions($user->getApiToken(), 'payment', null, true), 'code');
             foreach ($courses as $code => $course) {
                 if (isset($transactions[$code])) {
                     if ($course['type'] === PaymentStatus::RENT_NAME) {
                         $expiresAt = $transactions[$code]['expires'];
-                        $courses[$code]['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($expiresAt['date']));
+                        if ($expiresAt != null) {
+                            $courses[$code]['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($expiresAt['date']));
+                        }
                     } elseif ($course['type'] === PaymentStatus::BUY_NAME) {
                         $courses[$code]['price_msg'] = 'Куплено';
                     }
@@ -87,15 +89,14 @@ class CourseController extends AbstractController
             if ($courseRepository->count(['code' => $code]) > 0) {
                 throw new LogicException('Курс с таким кодом уже существует');
             }
-            if ($type == 0) {
+            if ($type == PaymentStatus::FREE) {
                 $price = 0;
-            } else {
-                if ($price == 0) {
-                    throw new ResourceNotFoundException('Курс платный, укажите цену');
-                }
+            } elseif ($price == 0) {
+                throw new ResourceNotFoundException('Курс платный, укажите цену');
             }
             $user = $this->security->getUser();
-            $courseDTO = new CourseDTO($name, $code, $type, $price);
+            $courseDTO = CourseDTO::getCourseDTO($name, $code, $type, $price);
+
             $response = $this->billingClient->newCourse($user->getApiToken(), $courseDTO);
             if (isset($response['success'])) {
                 $courseRepository->save($course, true);
@@ -143,12 +144,14 @@ class CourseController extends AbstractController
             $transaction = $transactions[count($transactions) - 1];
             $course['isPaid'] = true;
             if ($billingCourse['type'] === 'rent') {
-                $course['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($transaction['expires']['date']));
+                if ($transaction['expires'] != null) {
+                    $course['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($transaction['expires']['date']));
+                }
             } elseif ($billingCourse['type'] === 'buy') {
                 $course['price_msg'] = 'Куплено';
             }
         }
-        $status=null;
+        $status = null;
         if ($request->query->get('status') != null) {
             $status = PaymentStatus::PAY_NAMES[$request->query->get('status')];
         }
@@ -186,19 +189,25 @@ class CourseController extends AbstractController
     public function edit(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
         $oldCode = $course->getCode();
+        $billingCourse = $this->billingClient->getCourse($course->getCode());
+        $oldType = $billingCourse['type'];
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $name = $form->get('name')->getData();
-            $type = $form->get('type')->getData();
+            if ($oldType != PaymentStatus::BUY) {
+                $type = $form->get('type')->getData();
+            } else {
+                $type = $oldType;
+            }
             $price = $form->get('price')->getData();
             $code = $form->get('code')->getData();
             if ($oldCode != $code && $courseRepository->count(['code' => $code]) > 0) {
                 throw new LogicException('Курс с таким кодом уже существует');
             }
             $user = $this->security->getUser();
-            $courseDTO = new CourseDTO($name, $code, $type, $price);
+            $courseDTO = CourseDTO::getCourseDTO($name, $code, $type, $price);
             $response = $this->billingClient->editCourse($user->getApiToken(), $oldCode, $courseDTO);
             if (isset($response['success'])) {
                 $courseRepository->save($course, true);

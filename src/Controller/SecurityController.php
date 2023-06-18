@@ -8,6 +8,7 @@ use App\Service\BillingClient;
 use App\Security\BillingAuthenticator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
+use App\Exception\BillingUnavailableException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +20,6 @@ class SecurityController extends AbstractController
 {
     private BillingClient $billingClient;
     private Security $security;
-    public const SERVICE_TEMPORARILY_UNAVAILABLE = 'Сервис временно недоступен. Попробуйте авторизоваться позднее';
 
     public function __construct(BillingClient $billingClient, Security $security)
     {
@@ -74,7 +74,7 @@ class SecurityController extends AbstractController
                 if ($e instanceof CustomUserMessageAuthenticationException) {
                     $error = $e->getMessage();
                 } else {
-                    $error = self::SERVICE_TEMPORARILY_UNAVAILABLE;
+                    return new BillingUnavailableException();
                 }
                 return $this->render('register/register.html.twig', [
                     'registrationForm' => $form->createView(),
@@ -83,7 +83,7 @@ class SecurityController extends AbstractController
             }
             $user->setApiToken($token['token'])
                 ->setRefreshToken($token['refresh_token']);
-                
+
             return $userAuthenticator->authenticateUser(
                 $user,
                 $billingAuthenticator,

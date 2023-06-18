@@ -24,7 +24,7 @@ class LessonController extends AbstractController
     {
         $this->entityManager = $doctrine->getManager();
     }
-    
+
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Lesson $lesson): Response
     {
@@ -37,9 +37,9 @@ class LessonController extends AbstractController
     #[IsGranted('ROLE_SUPER_ADMIN')]
     public function new(Request $request, LessonRepository $lessonRepository, CourseRepository $courseRepository): Response
     {
-        $course_id= (int)$request->query->get('course');
+        $course_id = (int) $request->query->get('course');
         $lesson = new Lesson();
-        $course=$courseRepository->find($course_id);
+        $course = $courseRepository->find($course_id);
         if (!$course) {
             throw $this->createNotFoundException();
         }

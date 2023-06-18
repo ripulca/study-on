@@ -109,9 +109,7 @@ class User implements UserInterface
         // $this->plainPassword = null;
     }
 
-    /**
-     * @throws \JsonException
-     */
+    //данный метод остается тут, тк он также используется в UserProvider. а для использования decode от lexic tokenManagerInterface необходим TokenInterface
     public static function jwtDecode(string $token): array
     {
         $tokenPayload = explode('.', $token);

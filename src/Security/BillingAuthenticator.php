@@ -16,14 +16,12 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class BillingAuthenticator extends AbstractLoginFormAuthenticator
 {
     use TargetPathTrait;
 
     public const LOGIN_ROUTE = 'app_login';
-    public const SERVICE_TEMPORARILY_UNAVAILABLE = 'Сервис временно недоступен. Попробуйте авторизоваться позднее';
     private UrlGeneratorInterface $urlGenerator;
     private BillingClient $billingClient;
 
@@ -41,7 +39,7 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
         try {
             $token_data = $this->billingClient->auth(['username' => $email, 'password' => $password]);
         } catch (BillingUnavailableException|JsonException $e) {
-            throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
+            throw new BillingUnavailableException();
         }
         $refreshToken = $token_data['refresh_token'];
 
@@ -49,7 +47,7 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
             try {
                 $userDto = $this->billingClient->getCurrentUser($token);
             } catch (BillingUnavailableException|JsonException $e) {
-                throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
+                throw new BillingUnavailableException();
             }
             return User::fromDto($userDto)
                 ->setApiToken($token)

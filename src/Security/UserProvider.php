@@ -11,12 +11,10 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     private BillingClient $billingClient;
-    public const SERVICE_TEMPORARILY_UNAVAILABLE = 'Сервис временно недоступен. Попробуйте авторизоваться позднее';
 
     public function __construct(BillingClient $billingClient)
     {
@@ -37,7 +35,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         try {
             $userDto = $this->billingClient->getCurrentUser($identifier);
         } catch (BillingUnavailableException $e) {
-            throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
+            throw new BillingUnavailableException();
         }
 
         return User::fromDto($userDto)
@@ -72,18 +70,18 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         try {
             [$exp, $email, $roles] = User::jwtDecode($user->getApiToken());
         } catch (\JsonException $e) {
-            throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
+            throw new BillingUnavailableException();
         }
 
         $tokenExpiredTime = (new DateTime())->setTimestamp($exp + 20);
 
-        if ($tokenExpiredTime <= new DateTime()) {
+        if ($tokenExpiredTime <= new DateTime() && $user->getRefreshToken()!=null) {
             try {
                 $tokens = $this->billingClient->refreshToken($user->getRefreshToken());
                 $user->setApiToken($tokens['token'])
                     ->setRefreshToken($tokens['refresh_token']);
             } catch (BillingUnavailableException | \JsonException $e) {
-                throw new CustomUserMessageAuthenticationException(self::SERVICE_TEMPORARILY_UNAVAILABLE);
+                throw new BillingUnavailableException();
             }
         }
         return $this->loadUserByIdentifier($user->getApiToken());

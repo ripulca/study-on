@@ -4,7 +4,7 @@ namespace App\Service;
 
 class ArrayService
 {
-    public static function arrayByKey($array, $key):array
+    public static function mapToKey($array, $key):array
     {
         $result=[];
         foreach($array as $el){
