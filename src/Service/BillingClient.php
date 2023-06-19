@@ -6,7 +6,12 @@ use App\DTO\UserDTO;
 use JMS\Serializer\Serializer;
 use App\Exception\BillingException;
 use JMS\Serializer\SerializerInterface;
+use App\Exception\CourseNotFoundException;
+use App\Exception\NotEnoughMoneyException;
+use App\Exception\CourseValidationException;
+use App\Exception\CourseAlreadyPaidException;
 use App\Exception\BillingUnavailableException;
+use App\Exception\CourseAlreadyExistException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Intl\Exception\MissingResourceException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
@@ -110,7 +115,7 @@ class BillingClient
             self::GET_COURSES . $code,
         );
         if ($response['code'] === Response::HTTP_NOT_FOUND) {
-            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
@@ -145,13 +150,13 @@ class BillingClient
             throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_FORBIDDEN) {
-            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseValidationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_CONFLICT) {
-            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseAlreadyExistException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
-            throw new BillingUnavailableException();
+            throw new CourseValidationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
 
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
@@ -170,13 +175,13 @@ class BillingClient
             throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_FORBIDDEN) {
-            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseValidationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_CONFLICT) {
-            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseAlreadyExistException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
-            throw new BillingUnavailableException();
+            throw new CourseValidationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
 
         return json_decode($response['body'], true, 512, JSON_THROW_ON_ERROR);
@@ -195,13 +200,13 @@ class BillingClient
             throw new CustomUserMessageAuthenticationException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_NOT_FOUND) {
-            throw new ResourceNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseNotFoundException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_NOT_ACCEPTABLE) {
-            throw new MissingResourceException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new NotEnoughMoneyException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] === Response::HTTP_CONFLICT) {
-            throw new \LogicException(json_decode($response['body'], true)['errors'], $response['code']);
+            throw new CourseAlreadyPaidException(json_decode($response['body'], true)['errors'], $response['code']);
         }
         if ($response['code'] >= Response::HTTP_BAD_REQUEST) {
             throw new BillingUnavailableException();
