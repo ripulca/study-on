@@ -42,13 +42,13 @@ class CourseController extends AbstractController
             if (isset($billingCourses[$code])) {
                 if ($billingCourses[$code]['type'] === PaymentStatus::RENT_NAME) {
                     $courses[$code]['type'] = PaymentStatus::RENT_NAME;
-                    $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . '₽ в неделю';
+                    $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . PaymentStatus::ROUBLES. PaymentStatus::PER_WEEK;
                 } elseif ($billingCourses[$code]['type'] === PaymentStatus::BUY_NAME) {
                     $courses[$code]['type'] = PaymentStatus::BUY_NAME;
-                    $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . '₽';
+                    $courses[$code]['price_msg'] = $billingCourses[$code]['price'] . PaymentStatus::ROUBLES;
                 } elseif ($billingCourses[$code]['type'] === PaymentStatus::FREE_NAME) {
                     $courses[$code]['type'] = PaymentStatus::FREE_NAME;
-                    $courses[$code]['price_msg'] = 'Бесплатный';
+                    $courses[$code]['price_msg'] = PaymentStatus::FREE_RUS;
                 }
             }
         }
@@ -60,10 +60,10 @@ class CourseController extends AbstractController
                     if ($course['type'] === PaymentStatus::RENT_NAME) {
                         $expiresAt = $transactions[$code]['expires'];
                         if ($expiresAt != null) {
-                            $courses[$code]['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($expiresAt['date']));
+                            $courses[$code]['price_msg'] = PaymentStatus::RENT_TILL . date('d/m/y H:i:s', strtotime($expiresAt['date']));
                         }
                     } elseif ($course['type'] === PaymentStatus::BUY_NAME) {
-                        $courses[$code]['price_msg'] = 'Куплено';
+                        $courses[$code]['price_msg'] = PaymentStatus::BOUGHT;
                     }
                 }
             }
@@ -134,21 +134,21 @@ class CourseController extends AbstractController
             $course['price'] = $billingCourse['price'];
         }
         if ($billingCourse['type'] === 'rent') {
-            $course['price_msg'] = $billingCourse['price'] . '₽ в неделю';
+            $course['price_msg'] = $billingCourse['price'] . PaymentStatus::ROUBLES. PaymentStatus::PER_WEEK;
         } elseif ($billingCourse['type'] === 'buy') {
-            $course['price_msg'] = $billingCourse['price'] . '₽';
+            $course['price_msg'] = $billingCourse['price'] . PaymentStatus::ROUBLES;
         } elseif ($billingCourse['type'] === 'free') {
-            $course['price_msg'] = 'Бесплатный';
+            $course['price_msg'] = PaymentStatus::FREE_RUS;
         }
         if (count($transactions) > 0) {
             $transaction = $transactions[count($transactions) - 1];
             $course['isPaid'] = true;
             if ($billingCourse['type'] === 'rent') {
                 if ($transaction['expires'] != null) {
-                    $course['price_msg'] = 'Арендовано до ' . date('d/m/y H:i:s', strtotime($transaction['expires']['date']));
+                    $course['price_msg'] = PaymentStatus::RENT_TILL . date('d/m/y H:i:s', strtotime($transaction['expires']['date']));
                 }
             } elseif ($billingCourse['type'] === 'buy') {
-                $course['price_msg'] = 'Куплено';
+                $course['price_msg'] = PaymentStatus::BOUGHT;
             }
         }
         $status = null;

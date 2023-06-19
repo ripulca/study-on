@@ -45,4 +45,10 @@ class PaymentStatus
         self::RENT_NAME => self::RENT,
         self::BUY_NAME => self::BUY,
     ];
+
+    public const PER_WEEK=' в неделю';
+    public const ROUBLES='₽';
+    public const FREE_RUS='Бесплатный';
+    public const RENT_TILL='Арендовано до';
+    public const BOUGHT='Куплено';
 }
