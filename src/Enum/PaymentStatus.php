@@ -51,4 +51,17 @@ class PaymentStatus
     public const FREE_RUS='Бесплатный';
     public const RENT_TILL='Арендовано до';
     public const BOUGHT='Куплено';
+
+    public const PAYMENT = 0;
+    public const DEPOSIT = 1;
+
+    public const TYPE_NAMES = [
+        self::PAYMENT => 'оплата',
+        self::DEPOSIT => 'пополнение',
+    ];
+
+    public const TYPE_CODES = [
+        'payment' => self::PAYMENT,
+        'deposit' => self::DEPOSIT,
+    ];
 }

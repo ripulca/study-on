@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Enum\PaymentStatus;
 use App\Service\BillingClient;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,9 +24,13 @@ class ProfileController extends AbstractController
     public function profile(): Response
     {
         $user = $this->billingClient->getCurrentUser($this->getUser()->getApiToken());
-
+        $transactions=$this->billingClient->getTransactions($this->getUser()->getApiToken(), null, null, true);
+        foreach($transactions as &$transaction){
+            $transaction['type']=PaymentStatus::TYPE_NAMES[$transaction['type']];
+        }
         return $this->render('profile/show.html.twig', [
             'user' => $user,
+            'transactions' => $transactions,
         ]);
     }
 }
